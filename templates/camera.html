@@ -1,0 +1,22 @@
+<html>
+ <head>
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <style>
+      img { display: block;
+            margin-left: auto;
+            margin-right: auto;
+           }
+      h1 {text-align: center;}
+    </style>
+    <script src="{{url_for('static', filename='js.js')}}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  </head>
+  <body>
+     <img id="bg" src="{{ url_for('video_feed') }}">
+     <br/>
+     <button type="button" onmousedown="execPythonCommand('cam_up')", onmouseup="execPythonCommand('cam_stop')">up</button>
+     <button type="button" onmousedown="execPythonCommand('cam_down')", onmouseup="execPythonCommand('cam_stop')">down</button>
+     <button type="button" onmousedown="execPythonCommand('cam_left')", onmouseup="execPythonCommand('cam_stop')">left</button>
+     <button type="button" onmousedown="execPythonCommand('cam_right')", onmouseup="execPythonCommand('cam_stop')">right</button>
+  </body>
+</html>

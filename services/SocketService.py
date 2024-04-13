@@ -1,4 +1,6 @@
 import socket
+import struct
+
 
 HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
 
@@ -23,5 +25,10 @@ class SocketService:
                     action = conn.recv(1024).decode("utf-8")
                     if not action:
                         break
-                    self.runAction(action)
-                    conn.sendall(b"END")
+                    data = self.runAction(action)
+
+                    if data == None:
+                        data = action.encode()
+
+                    messageSize = struct.pack("<L", len(data))
+                    conn.sendall(messageSize + data)
