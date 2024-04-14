@@ -114,4 +114,4 @@ class CameraService(SocketService):
         self.servoCameraV.goToAngle(0)
 
     def shot(self):
-        return self.camera.getImage()
+        return self.camera.getImage(False)

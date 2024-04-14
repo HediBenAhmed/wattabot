@@ -1,34 +1,34 @@
-import time
 from drivers.Device import Device
-from gpiozero import Motor as GpMotor
-from drivers.Connectors import (
-    M1_IN3,
-    M1_IN4,
-    M2_IN2,
-    M2_IN1,
-    M3_IN1,
-    M3_IN2,
-    M4_IN4,
-    M4_IN3,
-)
+import RPi.GPIO as GPIO
 
 
 class Motor(Device):
-    def __init__(self, in1: int, in2: int):
-        self.motor = GpMotor(in1, in2)
+    def __init__(self, in1: int, in2: int, pwm: int):
+        GPIO.setwarnings(False)
+        GPIO.setmode(GPIO.BCM)
 
-    def goForward(self, delay: float):
-        self.motor.forward()
-        time.sleep(delay)
-        self.motor.stop()
+        GPIO.setup(in1, GPIO.OUT)
+        GPIO.setup(in2, GPIO.OUT)
+        GPIO.setup(pwm, GPIO.OUT)
 
-    def goBackward(self, delay: float):
-        self.motor.backward()
-        time.sleep(delay)
-        self.motor.stop()
+        GPIO.output(in1, GPIO.LOW)
+        GPIO.output(in2, GPIO.LOW)
 
+        self.in1 = in1
+        self.in2 = in2
+        self.pwm = GPIO.PWM(pwm, 100)
 
-MOTOR_M1 = Motor(M1_IN3, M1_IN4)
-MOTOR_M2 = Motor(M2_IN2, M2_IN1)
-MOTOR_M3 = Motor(M3_IN1, M3_IN2)
-MOTOR_M4 = Motor(M4_IN4, M4_IN3)
+    def goForward(self):
+        self.pwm.start(0)
+        GPIO.output(self.in2, GPIO.LOW)  # Upper Left forward
+        GPIO.output(self.in1, GPIO.HIGH)
+        self.pwm.ChangeDutyCycle(50)
+
+    def goBackward(self):
+        self.pwm.start(0)
+        GPIO.output(self.in2, GPIO.HIGH)  # Upper Left forward
+        GPIO.output(self.in1, GPIO.LOW)
+        self.pwm.ChangeDutyCycle(50)
+
+    def stop(self):
+        self.pwm.stop()
