@@ -24,9 +24,8 @@ class Camera(Device):
             if ret:
                 cv2.imwrite(output, frame)
 
-    def getImage(self, detectFaces=True, identifyFaces=True):
+    def getImage(self, detectFaces=True, identifyFaces=True, compress=20):
         ret, frame = self.cap.read()
-        # cv2.normalize(frame, frame, 0, 255, cv2.NORM_MINMAX)
         if not ret:
             return
 
@@ -67,7 +66,9 @@ class Camera(Device):
                         1,
                     )
 
-        ret, buffer = cv2.imencode(".jpeg", frame)
+        ret, buffer = cv2.imencode(
+            ".jpeg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), compress]
+        )
         return buffer.tobytes()
 
     def setCameraResolution(self, width: int, heigth: int):
