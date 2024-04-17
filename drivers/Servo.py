@@ -32,11 +32,9 @@ class Servo(Device):
 
     def move(self, direction: float, speed: float = 500):
         self.moving = True
-        print("move!", direction)
         while self.moving:
             self.goToAngle(self.currentAngle + direction)
             time.sleep(1 / speed)
 
     def stop(self):
-        print("stop!")
         self.moving = False

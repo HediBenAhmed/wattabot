@@ -29,7 +29,7 @@ class CameraService(SocketService):
         super().__init__(PORT)
         self.servoCameraH = Servo(servoPin3)
         self.servoCameraV = Servo(servoPin2)
-        self.camera = Camera()
+        self.camera = Camera(640, 480)
 
     def runAction(self, action: str):
         action = action.upper()
@@ -114,4 +114,4 @@ class CameraService(SocketService):
         self.servoCameraV.goToAngle(0)
 
     def shot(self):
-        return self.camera.getImage(False)
+        return self.camera.getImage()

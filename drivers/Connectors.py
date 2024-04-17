@@ -30,3 +30,6 @@ M2_PWM1 = 12
 M4_IN3 = 26
 M4_IN4 = 27
 M4_PWM2 = 13
+
+# IR receiver
+IR_PIN = 15

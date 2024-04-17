@@ -83,8 +83,8 @@ def login():
 
 def video_stream():
     while True:
-        # 20 images /sec
-        time.sleep(1 / 20)
+        # 10 images /sec
+        time.sleep(1 / 40)
 
         frame = CAMERA_SERVICE.runAction(C_SHOT)
         print(len(frame))
