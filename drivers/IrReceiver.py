@@ -1,4 +1,4 @@
-from drivers.Connectors import IR_PIN
+from services.Configurations import connectorConfig
 from drivers.Device import Device
 import time
 import RPi.GPIO as GPIO
@@ -20,6 +20,8 @@ KEY_9 = 0x5A
 KEY_STAR = 0x42
 KEY_0 = 0x52
 KEY_HASH = 0x4A
+
+IR_PIN = connectorConfig("RECEIVER_IR")
 
 
 class IrcReceiver(Device):

@@ -1,7 +1,10 @@
 import time
 from drivers.Device import Device
-from drivers.Connectors import GPIO_TRIGGER, GPIO_ECHO
+from services.Configurations import connectorConfig
 import RPi.GPIO as GPIO
+
+GPIO_ECHO = connectorConfig("USONIC_ECHO")
+GPIO_TRIGGER = connectorConfig("USONIC_TRIGGER")
 
 
 class Ultrasonic(Device):

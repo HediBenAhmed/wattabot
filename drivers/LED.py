@@ -1,4 +1,4 @@
-from drivers.Connectors import DIO, SCLK
+from services.Configurations import connectorConfig
 from drivers.Device import Device
 import time
 import RPi.GPIO as GPIO
@@ -154,56 +154,58 @@ matrix_hedi = (
 
 class LED(Device):
     def __init__(self):
+        self.SCLK = connectorConfig("LED_SCLK")
+        self.DIO = connectorConfig("LED_DIO")
         GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BCM)
 
-        GPIO.setup(SCLK, GPIO.OUT)
-        GPIO.setup(DIO, GPIO.OUT)
+        GPIO.setup(self.SCLK, GPIO.OUT)
+        GPIO.setup(self.DIO, GPIO.OUT)
 
     def nop(self):
         time.sleep(0.00003)
 
     def start(self):
-        GPIO.output(SCLK, 0)
+        GPIO.output(self.SCLK, 0)
         self.nop()
-        GPIO.output(SCLK, 1)
+        GPIO.output(self.SCLK, 1)
         self.nop()
-        GPIO.output(DIO, 1)
+        GPIO.output(self.DIO, 1)
         self.nop()
-        GPIO.output(DIO, 0)
+        GPIO.output(self.DIO, 0)
         self.nop()
 
     def matrix_clear(self):
         self.matrix_display(off)
-        GPIO.output(SCLK, 0)
+        GPIO.output(self.SCLK, 0)
         self.nop()
-        GPIO.output(DIO, 0)
+        GPIO.output(self.DIO, 0)
         self.nop()
-        GPIO.output(DIO, 0)
+        GPIO.output(self.DIO, 0)
         self.nop()
 
     def send_date(self, date):
         for i in range(0, 8):
-            GPIO.output(SCLK, 0)
+            GPIO.output(self.SCLK, 0)
             self.nop()
             if date & 0x01:
-                GPIO.output(DIO, 1)
+                GPIO.output(self.DIO, 1)
             else:
-                GPIO.output(DIO, 0)
+                GPIO.output(self.DIO, 0)
             self.nop()
-            GPIO.output(SCLK, 1)
+            GPIO.output(self.SCLK, 1)
             self.nop()
             date >>= 1
-            GPIO.output(SCLK, 0)
+            GPIO.output(self.SCLK, 0)
 
     def end(self):
-        GPIO.output(SCLK, 0)
+        GPIO.output(self.SCLK, 0)
         self.nop()
-        GPIO.output(DIO, 0)
+        GPIO.output(self.DIO, 0)
         self.nop()
-        GPIO.output(SCLK, 1)
+        GPIO.output(self.SCLK, 1)
         self.nop()
-        GPIO.output(DIO, 1)
+        GPIO.output(self.DIO, 1)
         self.nop()
 
     def matrix_display(self, matrix_value):
@@ -217,3 +219,6 @@ class LED(Device):
         self.start()
         self.send_date(0x8A)
         self.end()
+
+
+LED_SCREEN = LED()

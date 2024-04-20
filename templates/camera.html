@@ -14,6 +14,8 @@
   <body>
      <img id="bg" src="{{ url_for('video_feed') }}">
      <br/>
+     <label for="faces">faces</label><input type="checkbox" id="faces" value="faces" onclick="execPythonCommand('cam_enable_faces')">
+     <label for="centralize">centralize</label><input type="checkbox" id="centralize" value="centralize" onclick="execPythonCommand('cam_centralize_faces')">
      <button type="button" onmousedown="execPythonCommand('cam_up')", onmouseup="execPythonCommand('cam_stop')">up</button>
      <button type="button" onmousedown="execPythonCommand('cam_down')", onmouseup="execPythonCommand('cam_stop')">down</button>
      <button type="button" onmousedown="execPythonCommand('cam_left')", onmouseup="execPythonCommand('cam_stop')">left</button>

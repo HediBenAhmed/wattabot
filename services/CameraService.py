@@ -1,117 +1,107 @@
-from drivers.Camera import Camera
-from services.SocketService import SocketService
-from drivers.Servo import Servo
-from drivers.Connectors import servoPin2, servoPin3
+from drivers.Camera import CAMERA_HEIGHT, CAMERA_WIDTH, CAMERA, Face
+from drivers.Servo import CAMERA_SERVO_H, CAMERA_SERVO_V
 import threading
 
-
-PORT = 1050
-
-COMMAND_STOP = "STOP"
-
-COMMAND_UP = "UP"
-COMMAND_DOWN = "DOWN"
-COMMAND_LEFT = "LEFT"
-COMMAND_RIGHT = "RIGHT"
-
-COMMAND_UP_LEFT = "UP_LEFT"
-COMMAND_DOWN_LEFT = "DOWN_LEFT"
-COMMAND_UP_RIGHT = "UP_RIGHT"
-COMMAND_DOWN_RIGHT = "DOWN_RIGHT"
-
-COMMAND_SHOT = "SHOT"
-
-COMMAND_RESET = "RESET"
+CENTER_OF_CAMERA = [CAMERA_WIDTH / 2, CAMERA_HEIGHT / 2]
+CENTER_MARGIN = [50, 50]
 
 
-class CameraService(SocketService):
+class CameraService:
     def __init__(self):
-        super().__init__(PORT)
-        self.servoCameraH = Servo(servoPin3)
-        self.servoCameraV = Servo(servoPin2)
-        self.camera = Camera(640, 480)
-
-    def runAction(self, action: str):
-        action = action.upper()
-        if action == COMMAND_UP:
-            self.up()
-        elif action == COMMAND_DOWN:
-            self.down()
-        elif action == COMMAND_LEFT:
-            self.left()
-        elif action == COMMAND_RIGHT:
-            self.right()
-        elif action == COMMAND_UP_LEFT:
-            self.up_left()
-        elif action == COMMAND_DOWN_LEFT:
-            self.down_left()
-        elif action == COMMAND_UP_RIGHT:
-            self.up_right()
-        elif action == COMMAND_DOWN_RIGHT:
-            self.down_right()
-        elif action == COMMAND_RESET:
-            self.reset()
-        elif action == COMMAND_STOP:
-            self.stop()
-
-        elif action == COMMAND_SHOT:
-            return self.shot()
+        self.moveCamera = False
 
     def up(self):
-        self.servoCameraV.move(-1)
+        self.moveCamera = True
+        while self.moveCamera:
+            self.move(0, -1)
 
     def down(self):
-        self.servoCameraV.move(1)
+        self.moveCamera = True
+        while self.moveCamera:
+            self.move(0, 1)
 
     def left(self):
-        self.servoCameraH.move(1)
+        self.moveCamera = True
+        while self.moveCamera:
+            self.move(-1, 0)
 
     def right(self):
-        self.servoCameraH.move(-1)
+        self.moveCamera = True
+        while self.moveCamera:
+            self.move(1, 0)
 
     def up_left(self):
-        up = threading.Thread(target=self.up)
-        left = threading.Thread(target=self.left)
-
-        up.start()
-        left.start()
-        up.join()
-        left.join()
+        self.moveCamera = True
+        while self.moveCamera:
+            self.move(-1, -1)
 
     def up_right(self):
-        up = threading.Thread(target=self.up)
-        right = threading.Thread(target=self.right)
-
-        up.start()
-        right.start()
-        up.join()
-        right.join()
+        self.moveCamera = True
+        while self.moveCamera:
+            self.move(1, -1)
 
     def down_left(self):
-        down = threading.Thread(target=self.down)
-        left = threading.Thread(target=self.left)
-
-        down.start()
-        left.start()
-        down.join()
-        left.join()
+        self.moveCamera = True
+        while self.moveCamera:
+            self.move(-1, 1)
 
     def down_right(self):
-        down = threading.Thread(target=self.down)
-        right = threading.Thread(target=self.right)
-
-        down.start()
-        right.start()
-        down.join()
-        right.join()
+        self.moveCamera = True
+        while self.moveCamera:
+            self.move(1, 1)
 
     def stop(self):
-        self.servoCameraH.stop()
-        self.servoCameraV.stop()
+        self.moveCamera = False
 
     def reset(self):
-        self.servoCameraH.goToAngle(0)
-        self.servoCameraV.goToAngle(0)
+        CAMERA_SERVO_H.goToAngle(0)
+        CAMERA_SERVO_V.goToAngle(0)
 
-    def shot(self):
-        return self.camera.getImage()
+    def move(self, x, y):
+        h = threading.Thread(target=CAMERA_SERVO_H.move, args=(x,))
+        v = threading.Thread(target=CAMERA_SERVO_V.move, args=(y,))
+
+        h.start()
+        v.start()
+        h.join()
+        v.join()
+
+    def getImageStream(self, identifyFaces=True):
+        return CAMERA.getImageForStream(identifyFaces)
+
+    def getImage(self):
+        frame, faces = CAMERA.getImage(identifyFaces=True)
+
+        if len(faces) > 0:
+            self.centralizeFace(faces[0])
+
+        return frame, faces
+
+    def centralizeFace(self, face: Face):
+        moveTo = self.refFromCameraCenter(face.position)
+        self.move(2 * moveTo[0], 2 * moveTo[1])
+
+    def refFromCameraCenter(self, facePosition):
+        x, y, w, h = facePosition
+        faceCenter = [x + w / 2, y + h / 2]
+        direction = [0, 0]
+        hDiff = faceCenter[0] - CENTER_OF_CAMERA[0]
+        if abs(hDiff) < CENTER_MARGIN[0]:
+            direction[0] = 0
+        elif hDiff < 0:
+            direction[0] = 1
+        elif hDiff > 0:
+            direction[0] = -1
+
+        vDiff = faceCenter[1] - CENTER_OF_CAMERA[1]
+        if abs(vDiff) < CENTER_MARGIN[1]:
+            direction[1] = 0
+        elif vDiff < 0:
+            direction[1] = -1
+        elif vDiff > 0:
+            direction[1] = 1
+
+        return direction
+
+
+CAMERA_SERVICE = CameraService()

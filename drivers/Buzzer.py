@@ -1,6 +1,6 @@
 import time
 from drivers.Device import Device
-from drivers.Connectors import buzPin
+from services.Configurations import connectorConfig
 import RPi.GPIO as GPIO
 
 # Happy birthday
@@ -22,8 +22,9 @@ Si_h = 988
 
 class Buzzer(Device):
     def __init__(self):
-        GPIO.setup(buzPin, GPIO.OUT)
-        self.buzz = GPIO.PWM(buzPin, 440)
+        pin = connectorConfig("BUZZER")
+        GPIO.setup(pin, GPIO.OUT)
+        self.buzz = GPIO.PWM(pin, 440)
 
     def beep(self, frequency: float, delay: float):
         self.buzz.start(50)

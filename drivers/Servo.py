@@ -4,6 +4,8 @@ import time
 from gpiozero import Servo as GpServo
 from gpiozero.pins.pigpio import PiGPIOFactory
 
+from services.Configurations import connectorConfig
+
 
 class Servo(Device):
     def __init__(self, servoPin: int):
@@ -16,25 +18,24 @@ class Servo(Device):
 
         self.servo.mid()
         self.currentAngle = 0
-        self.moving = False
         time.sleep(1)
 
     def goToAngle(self, angle: float):
         delay = abs(abs(self.currentAngle) - abs(angle)) * 0.005
         newValue = angle / 90
         if newValue > 1 or newValue < -1:
-            self.stop()
             return
 
         self.servo.value = newValue
         time.sleep(delay)
         self.currentAngle = angle
 
-    def move(self, direction: float, speed: float = 500):
-        self.moving = True
-        while self.moving:
-            self.goToAngle(self.currentAngle + direction)
-            time.sleep(1 / speed)
+    def move(self, direction: float):
+        if direction == 0:
+            return
 
-    def stop(self):
-        self.moving = False
+        self.goToAngle(self.currentAngle + direction)
+
+
+CAMERA_SERVO_H = Servo(connectorConfig("CAMERA_SERVO_H"))
+CAMERA_SERVO_V = Servo(connectorConfig("CAMERA_SERVO_V"))

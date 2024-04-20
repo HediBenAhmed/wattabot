@@ -9,29 +9,11 @@ from flask_login import (
     current_user,
 )
 from collections import defaultdict
-from services.CameraService import (
-    COMMAND_DOWN as C_DOWN,
-    COMMAND_LEFT as C_LEFT,
-    COMMAND_RIGHT as C_RIGHT,
-    COMMAND_STOP as C_STOP,
-    COMMAND_UP as C_UP,
-    COMMAND_SHOT as C_SHOT,
-    CameraService,
-)
+from drivers.Camera import CAMERA_FPS
+from services.CameraService import CAMERA_SERVICE
 from waitress import serve
 
-from services.MotorsService import (
-    COMMAND_BACKWARD as M_BACKWARD,
-    COMMAND_LEFT as M_LEFT,
-    COMMAND_RIGHT as M_RIGHT,
-    COMMAND_STOP as M_STOP,
-    COMMAND_FORWARD as M_FORWARD,
-    MotorsService,
-)
-
-
-CAMERA_SERVICE = CameraService()
-MOTORS_SERVICE = MotorsService()
+from services.MotorsService import MOTORS_SERVICE
 
 app = Flask(
     "__name__",
@@ -42,6 +24,15 @@ app = Flask(
 login_manager = LoginManager()
 login_manager.init_app(app)
 app.config["SECRET_KEY"] = "loginexample"
+
+
+class WebParameters:
+    def __init__(self):
+        self.enable_face = False
+        self.enable_center = False
+
+
+WEB_PARAMETERS = WebParameters()
 
 
 class User(UserMixin):
@@ -84,10 +75,10 @@ def login():
 def video_stream():
     while True:
         # 10 images /sec
-        time.sleep(1 / 40)
-
-        frame = CAMERA_SERVICE.runAction(C_SHOT)
-        print(len(frame))
+        time.sleep(1 / CAMERA_FPS)
+        frame, faces = CAMERA_SERVICE.getImageStream(WEB_PARAMETERS.enable_face)
+        if WEB_PARAMETERS.enable_center and len(faces) > 0:
+            CAMERA_SERVICE.centralizeFace(faces[0])
         yield (b" --frame\r\n" b"Content-type: imgae/jpeg\r\n\r\n" + frame + b"\r\n")
 
 
@@ -105,73 +96,86 @@ def video_feed():
     )
 
 
+@app.route("/cam_enable_faces")
+@login_required
+def cam_enable_faces():
+    WEB_PARAMETERS.enable_face = not WEB_PARAMETERS.enable_face
+    return ""
+
+
+@app.route("/cam_centralize_faces")
+@login_required
+def cam_centralize_faces():
+    WEB_PARAMETERS.enable_center = not WEB_PARAMETERS.enable_center
+    return ""
+
+
 @app.route("/cam_up")
 @login_required
 def cam_up():
-    CAMERA_SERVICE.runAction(C_UP)
+    CAMERA_SERVICE.up()
     return ""
 
 
 @app.route("/cam_down")
 @login_required
 def cam_down():
-    CAMERA_SERVICE.runAction(C_DOWN)
+    CAMERA_SERVICE.down()
     return ""
 
 
 @app.route("/cam_left")
 @login_required
 def cam_left():
-    CAMERA_SERVICE.runAction(C_LEFT)
+    CAMERA_SERVICE.left()
     return ""
 
 
 @app.route("/cam_right")
 @login_required
 def cam_right():
-    CAMERA_SERVICE.runAction(C_RIGHT)
+    CAMERA_SERVICE.right()
     return ""
 
 
 @app.route("/cam_stop")
 @login_required
 def cam_stop():
-    CAMERA_SERVICE.runAction(C_STOP)
+    CAMERA_SERVICE.stop()
     return ""
 
 
 @app.route("/motor_forward")
 @login_required
 def motor_forward():
-    MOTORS_SERVICE.runAction(M_FORWARD)
+    MOTORS_SERVICE.forward()
     return ""
 
 
 @app.route("/motor_backwoard")
 @login_required
 def motor_backwoard():
-    MOTORS_SERVICE.runAction(M_BACKWARD)
-    return ""
+    MOTORS_SERVICE.backward()
 
 
 @app.route("/motor_left")
 @login_required
 def motor_left():
-    MOTORS_SERVICE.runAction(M_LEFT)
+    MOTORS_SERVICE.left()
     return ""
 
 
 @app.route("/motor_right")
 @login_required
 def motor_right():
-    MOTORS_SERVICE.runAction(M_RIGHT)
+    MOTORS_SERVICE.right()
     return ""
 
 
 @app.route("/motor_stop")
 @login_required
 def motor_stop():
-    MOTORS_SERVICE.runAction(M_STOP)
+    MOTORS_SERVICE.stop()
     return ""
 
 
