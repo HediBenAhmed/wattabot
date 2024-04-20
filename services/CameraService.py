@@ -54,12 +54,12 @@ class CameraService:
         self.moveCamera = False
 
     def reset(self):
-        CAMERA_SERVO_H.goToAngle(0)
-        CAMERA_SERVO_V.goToAngle(0)
+        CAMERA_SERVO_H.setValue(0)
+        CAMERA_SERVO_V.setValue(0)
 
     def move(self, x, y):
-        h = threading.Thread(target=CAMERA_SERVO_H.move, args=(x,))
-        v = threading.Thread(target=CAMERA_SERVO_V.move, args=(y,))
+        h = threading.Thread(target=CAMERA_SERVO_H.move, args=(x / 100,))
+        v = threading.Thread(target=CAMERA_SERVO_V.move, args=(y / 100,))
 
         h.start()
         v.start()

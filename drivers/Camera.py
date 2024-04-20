@@ -83,15 +83,12 @@ class Camera(Device):
         return buffer.tobytes(), faces
 
     def getImage(self, identifyFaces=False):
-        start_time = time.time()
         ret, frame = self.cap.read()
         if not ret:
             return
 
-        print("--- %s seconds ---" % (time.time() - start_time))
         if identifyFaces:
             faces: List[Face] = self.identifyFaces(frame)
-            print("--- %s seconds ---" % (time.time() - start_time))
 
         return frame, faces
 

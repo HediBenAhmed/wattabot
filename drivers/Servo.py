@@ -6,6 +6,9 @@ from gpiozero.pins.pigpio import PiGPIOFactory
 
 from services.Configurations import connectorConfig
 
+SERVO_MAX_VALUE = 0.7
+SERVO_MIN_VALUE = -0.7
+
 
 class Servo(Device):
     def __init__(self, servoPin: int):
@@ -17,24 +20,23 @@ class Servo(Device):
         )
 
         self.servo.mid()
-        self.currentAngle = 0
         time.sleep(1)
 
-    def goToAngle(self, angle: float):
-        delay = abs(abs(self.currentAngle) - abs(angle)) * 0.005
-        newValue = angle / 90
-        if newValue > 1 or newValue < -1:
-            return
+    def setValue(self, value: float):
+        if value > SERVO_MAX_VALUE:
+            value = SERVO_MAX_VALUE
+        elif value < SERVO_MIN_VALUE:
+            value = SERVO_MIN_VALUE
 
-        self.servo.value = newValue
+        delay = abs(abs(self.servo.value) - abs(value)) * 2
+        self.servo.value = value
         time.sleep(delay)
-        self.currentAngle = angle
 
-    def move(self, direction: float):
-        if direction == 0:
+    def move(self, step: float):
+        if step == 0:
             return
 
-        self.goToAngle(self.currentAngle + direction)
+        self.setValue(self.servo.value + step)
 
 
 CAMERA_SERVO_H = Servo(connectorConfig("CAMERA_SERVO_H"))
