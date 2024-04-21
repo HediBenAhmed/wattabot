@@ -19,9 +19,6 @@ class Servo(Device):
             pin_factory=PiGPIOFactory(),
         )
 
-        self.servo.mid()
-        time.sleep(1)
-
     def setValue(self, value: float):
         if value > SERVO_MAX_VALUE:
             value = SERVO_MAX_VALUE

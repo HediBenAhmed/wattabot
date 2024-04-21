@@ -28,7 +28,8 @@ app.config["SECRET_KEY"] = "loginexample"
 
 class WebParameters:
     def __init__(self):
-        self.enable_face = False
+        self.enable_faces = False
+        self.identify_faces = False
         self.enable_center = False
 
 
@@ -76,7 +77,9 @@ def video_stream():
     while True:
         # 10 images /sec
         time.sleep(1 / CAMERA_FPS)
-        frame, faces = CAMERA_SERVICE.getImageStream(WEB_PARAMETERS.enable_face)
+        frame, faces = CAMERA_SERVICE.getImageStream(
+            WEB_PARAMETERS.enable_faces, WEB_PARAMETERS.identify_faces
+        )
         if WEB_PARAMETERS.enable_center and len(faces) > 0:
             CAMERA_SERVICE.centralizeFace(faces[0])
         yield (b" --frame\r\n" b"Content-type: imgae/jpeg\r\n\r\n" + frame + b"\r\n")
@@ -99,7 +102,14 @@ def video_feed():
 @app.route("/cam_enable_faces")
 @login_required
 def cam_enable_faces():
-    WEB_PARAMETERS.enable_face = not WEB_PARAMETERS.enable_face
+    WEB_PARAMETERS.enable_faces = not WEB_PARAMETERS.enable_faces
+    return ""
+
+
+@app.route("/identify_faces")
+@login_required
+def identify_faces():
+    WEB_PARAMETERS.identify_faces = not WEB_PARAMETERS.identify_faces
     return ""
 
 
@@ -113,28 +123,28 @@ def cam_centralize_faces():
 @app.route("/cam_up")
 @login_required
 def cam_up():
-    CAMERA_SERVICE.up()
+    CAMERA_SERVICE.moveLoop(0, -1)
     return ""
 
 
 @app.route("/cam_down")
 @login_required
 def cam_down():
-    CAMERA_SERVICE.down()
+    CAMERA_SERVICE.moveLoop(0, 1)
     return ""
 
 
 @app.route("/cam_left")
 @login_required
 def cam_left():
-    CAMERA_SERVICE.left()
+    CAMERA_SERVICE.moveLoop(-1, 0)
     return ""
 
 
 @app.route("/cam_right")
 @login_required
 def cam_right():
-    CAMERA_SERVICE.right()
+    CAMERA_SERVICE.moveLoop(1, 0)
     return ""
 
 

@@ -1,7 +1,7 @@
 import configparser
 
 CONFIGURATIONS = configparser.ConfigParser()
-CONFIGURATIONS.read("wattabot.ini")
+CONFIGURATIONS.read("/home/hedi/wattabot/wattabot.ini")
 
 
 def connectorConfig(name: str):
