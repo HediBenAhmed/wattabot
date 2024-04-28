@@ -156,4 +156,4 @@ class CameraService(Service):
         return cv2.LUT(image, table)
 
 
-CAMERA_SERVICE = CameraService("CAMERA_SERVICE")
+CAMERA_SERVICE = CameraService()

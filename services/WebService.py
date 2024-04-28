@@ -19,9 +19,6 @@ WEB_PARAMETERS = WebParameters()
 
 
 class WebService(Service):
-    def __init__(self):
-        super().__init__("WEB_SERVICE")
-        CAMERA_SERVO_SERVICE.startConsumer()
 
     def videoStream(self):
         while True:
@@ -31,7 +28,7 @@ class WebService(Service):
                 WEB_PARAMETERS.enable_faces, WEB_PARAMETERS.identify_faces
             )
             if WEB_PARAMETERS.enable_center and len(faces) > 0:
-                CAMERA_SERVICE.sendCommand(
+                self.sendCommand(
                     CAMERA_SERVO_SERVICE, Command("centralizeFace", face=faces[0])
                 )
             yield (
@@ -48,39 +45,31 @@ class WebService(Service):
         WEB_PARAMETERS.enable_center = not WEB_PARAMETERS.enable_center
 
     def camUp(self):
-        CAMERA_SERVICE.sendCommand(
-            CAMERA_SERVO_SERVICE, Command("move", hStep=0, vStep=-1)
-        )
+        self.sendCommand(CAMERA_SERVO_SERVICE, Command("move", hStep=0, vStep=-1))
 
     def camDown(self):
-        CAMERA_SERVICE.sendCommand(
-            CAMERA_SERVO_SERVICE, Command("move", hStep=0, vStep=1)
-        )
+        self.sendCommand(CAMERA_SERVO_SERVICE, Command("move", hStep=0, vStep=1))
 
     def camLeft(self):
-        CAMERA_SERVICE.sendCommand(
-            CAMERA_SERVO_SERVICE, Command("move", hStep=-1, vStep=0)
-        )
+        self.sendCommand(CAMERA_SERVO_SERVICE, Command("move", hStep=-1, vStep=0))
 
     def camRight(self):
-        CAMERA_SERVICE.sendCommand(
-            CAMERA_SERVO_SERVICE, Command("move", hStep=1, vStep=0)
-        )
+        self.sendCommand(CAMERA_SERVO_SERVICE, Command("move", hStep=1, vStep=0))
 
     def motorForward(self):
-        MOTORS_SERVICE.forward()
+        self.sendCommand(MOTORS_SERVICE, Command("forward"))
 
     def motorBackwoard(self):
-        MOTORS_SERVICE.backward()
+        self.sendCommand(MOTORS_SERVICE, Command("backward"))
 
     def motorLeft(self):
-        MOTORS_SERVICE.left()
+        self.sendCommand(MOTORS_SERVICE, Command("left"))
 
     def motorRight(self):
-        MOTORS_SERVICE.right()
+        self.sendCommand(MOTORS_SERVICE, Command("right"))
 
     def motorStop(self):
-        MOTORS_SERVICE.stop()
+        self.sendCommand(MOTORS_SERVICE, Command("stop"))
 
 
 WEB_SERVICE = WebService()

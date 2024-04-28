@@ -5,11 +5,9 @@ from drivers.Servo import (
     SERVO_MAX_VALUE,
     SERVO_MIN_VALUE,
 )
-import threading
 
-from services import Command
+from services.Command import Command
 from services.Face import Face
-from services.ProcessManager import Status
 from services.Service import Service
 
 CENTER_OF_CAMERA = [CAMERA_WIDTH / 2, CAMERA_HEIGHT / 2]
@@ -18,7 +16,6 @@ CENTER_MARGIN = [50, 50]
 
 class CameraServoService(Service):
     def __init__(self):
-        super().__init__("CAMERA_SERVO_SERVICE")
         self.moveCamera = False
 
     def getStatus(self):
@@ -34,24 +31,26 @@ class CameraServoService(Service):
 
     def setPosition(self, x, y):
         self.moveCamera = True
-        h = threading.Thread(target=CAMERA_SERVO_H.setValue, args=(x,))
-        v = threading.Thread(target=CAMERA_SERVO_V.setValue, args=(y,))
 
-        h.start()
-        v.start()
-        h.join()
-        v.join()
+        commands = [
+            (CAMERA_SERVO_H.setValue, (x,)),
+            (CAMERA_SERVO_V.setValue, (y,)),
+        ]
+
+        self.executeTasks(commands)
+
         self.moveCamera = False
 
     def move(self, hStep, vStep):
         self.moveCamera = True
-        h = threading.Thread(target=CAMERA_SERVO_H.move, args=(hStep / 100,))
-        v = threading.Thread(target=CAMERA_SERVO_V.move, args=(vStep / 100,))
 
-        h.start()
-        v.start()
-        h.join()
-        v.join()
+        commands = [
+            (CAMERA_SERVO_H.move, (hStep / 100,)),
+            (CAMERA_SERVO_V.move, (vStep / 100,)),
+        ]
+
+        self.executeTasks(commands)
+
         self.moveCamera = False
 
     def centralizeFace(self, face: Face):
@@ -84,16 +83,16 @@ class CameraServoService(Service):
 
     def executeCommand(self, command: Command):
         if command.command == "setPosition":
-            self.setPosition(command.parameters.get("x"), command.parameters.get("y"))
+            self.setPosition(command.getParameter("x"), command.getParameter("y"))
         elif command.command == "move":
-            self.move(command.parameters.get("hStep"), command.parameters.get("vStep"))
+            self.move(command.getParameter("hStep"), command.getParameter("vStep"))
         elif command.command == "centralizeFace":
-            self.centralizeFace(command.parameters.get("face"))
+            self.centralizeFace(command.getParameter("face"))
         if command.command == "stop":
             self.stop()
 
 
-class CameraServoStatus(Status):
+class CameraServoStatus:
     def __init__(
         self,
         cameraMoving: bool,
