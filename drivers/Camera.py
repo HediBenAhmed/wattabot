@@ -15,11 +15,14 @@ class Camera(Device):
     def getImage(self):
         return self.cap.read()
 
-    def setCameraConfigs(self, width: int, heigth: int):
+    def setCameraConfigs(self, width: int, height: int):
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, heigth)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
         self.cap.set(cv2.CAP_PROP_FPS, CAMERA_FPS)
         self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+
+    def setDefaultCameraConfigs(self):
+        self.setCameraConfigs(CAMERA_WIDTH, CAMERA_HEIGHT)
 
 
 CAMERA = Camera(CAMERA_WIDTH, CAMERA_HEIGHT)

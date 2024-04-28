@@ -2,9 +2,13 @@ import time
 from typing import List
 
 from drivers.Camera import CAMERA_FPS, CAMERA_HEIGHT, CAMERA_WIDTH, CAMERA
-from drivers.Servo import CAMERA_SERVO_H, CAMERA_SERVO_V
-import threading
 import cv2
+import numpy as np
+
+from services.Command import Command
+from services.CameraServoService import CAMERA_SERVO_SERVICE
+from services.Face import Face
+from services.Service import Service
 
 FACE_DETECTOR = cv2.CascadeClassifier(
     cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
@@ -21,42 +25,20 @@ CENTER_OF_CAMERA = [CAMERA_WIDTH / 2, CAMERA_HEIGHT / 2]
 CENTER_MARGIN = [50, 50]
 
 
-class CameraService:
-    def __init__(self):
-        self.moveCamera = False
+class CameraService(Service):
 
-    def moveLoop(self, x, y, delay=0):
-        self.moveCamera = True
-        while self.moveCamera:
-            self.move(x, y)
-            time.sleep(delay)
-
-    def stop(self):
-        self.moveCamera = False
-
-    def reset(self):
-        CAMERA_SERVO_H.setValue(0)
-        CAMERA_SERVO_V.setValue(0)
-
-    def move(self, hStep, vStep):
-        h = threading.Thread(target=CAMERA_SERVO_H.move, args=(hStep / 100,))
-        v = threading.Thread(target=CAMERA_SERVO_V.move, args=(vStep / 100,))
-
-        h.start()
-        v.start()
-        h.join()
-        v.join()
-
-    def getImage(self):
-        return CAMERA.getImage()
+    def getImage(self, gamma=1.0):
+        ret, frame = CAMERA.getImage()
+        if ret and gamma != 1.0:
+            frame = self.adjustGamma(frame, gamma)
+        return ret, frame
 
     def getImageStream(self, enableFaces=True, identifyFaces=True, compress=10):
-        ret, frame = CAMERA.getImage()
+        ret, frame = self.getImage(1.5)
         if not ret:
             return
 
         faces: List[Face] = []
-
         if enableFaces:
             faces = self.scanFaces(frame, identifyFaces)
             for face in faces:
@@ -103,7 +85,7 @@ class CameraService:
             if identifyFaces:
                 id, confidence = RECONIZER.predict(gray[y : y + h, x : x + w])
                 # Check if confidence is less then 40  ==> "0" is perfect match
-                if confidence < 40:
+                if confidence < 49:
                     id = NAMES[id]
                 else:
                     id = "unknown"
@@ -121,70 +103,57 @@ class CameraService:
 
         return faces
 
-    def centralizeFace(self, face):
-        moveTo = self.refFromCameraCenter(face.position)
-        self.move(2 * moveTo[0], 2 * moveTo[1])
-
-        return moveTo
-
-    def refFromCameraCenter(self, facePosition):
-        x, y, w, h = facePosition
-        faceCenter = [x + w / 2, y + h / 2]
-        direction = [0, 0]
-        hDiff = faceCenter[0] - CENTER_OF_CAMERA[0]
-        if abs(hDiff) < CENTER_MARGIN[0]:
-            direction[0] = 0
-        elif hDiff < 0:
-            direction[0] = 1
-        elif hDiff > 0:
-            direction[0] = -1
-
-        vDiff = faceCenter[1] - CENTER_OF_CAMERA[1]
-        if abs(vDiff) < CENTER_MARGIN[1]:
-            direction[1] = 0
-        elif vDiff < 0:
-            direction[1] = -1
-        elif vDiff > 0:
-            direction[1] = 1
-
-        return direction
-
     def lookupForFaces(self):
-        CAMERA_SERVO_H.setValue(-1)
-        CAMERA_SERVO_V.setValue(-1)
-        time.sleep(1)
+        faces = []
+        self.sendCommand(CAMERA_SERVO_SERVICE, Command("setPosition", x=0, y=0.45))
 
-        while True:
-            self.move(2, 2)
+        foundFace = False
+        centralized = False
+        while not centralized and not (
+            CAMERA_SERVO_SERVICE.getStatus().vservoMax
+            or CAMERA_SERVO_SERVICE.getStatus().hservoMax
+        ):
+            if not foundFace:
+                self.sendCommand(
+                    CAMERA_SERVO_SERVICE, Command("move", hStep=0, vStep=2)
+                )
             time.sleep(2 / CAMERA_FPS)
             ret, frame = CAMERA.getImage()
             if ret:
                 faces = self.scanFaces(frame, False)
 
                 if len(faces) > 0:
-                    break
+                    foundFace = True
+                    face = faces[0]
+                    moveTo = self.centralizeFace(face)
 
-        CAMERA.saveImage("out.jpg")
+                    if moveTo == [0, 0]:
+                        centralized = True
+
+        # identify face
+        CAMERA.setCameraConfigs(width=1280, height=720)
+        ret, frame = CAMERA.getImage()
+        if ret:
+            faces = self.scanFaces(frame)
+
+        CAMERA.setDefaultCameraConfigs()
+
+        return faces
 
     def saveImage(self, frame, output):
         cv2.imwrite(output, frame)
 
+    def execute(self, compress=10, enableFaces=True, identifyFaces=True):
+        pass
 
-class Face:
-    def __init__(
-        self,
-        image,
-        position: cv2.typing.Rect,
-        identified: bool,
-        name: str,
-        confidence: float,
-    ):
-        self.image = image
-        self.position = position
-        self.identified = identified
-        if identified:
-            self.name = name
-            self.confidence = confidence
+    def adjustGamma(self, image, gamma=1.0):
+
+        invGamma = 1.0 / gamma
+        table = np.array(
+            [((i / 255.0) ** invGamma) * 255 for i in np.arange(0, 256)]
+        ).astype("uint8")
+
+        return cv2.LUT(image, table)
 
 
-CAMERA_SERVICE = CameraService()
+CAMERA_SERVICE = CameraService("CAMERA_SERVICE")

@@ -17,10 +17,10 @@
      <label for="faces">faces</label><input type="checkbox" id="faces" value="faces" onclick="execPythonCommand('cam_enable_faces')">
      <label for="identify">identify</label><input type="checkbox" id="identify" value="identify" onclick="execPythonCommand('identify_faces')">
      <label for="centralize">centralize</label><input type="checkbox" id="centralize" value="centralize" onclick="execPythonCommand('cam_centralize_faces')">
-     <button type="button" onmousedown="execPythonCommand('cam_up')", onmouseup="execPythonCommand('cam_stop')">up</button>
-     <button type="button" onmousedown="execPythonCommand('cam_down')", onmouseup="execPythonCommand('cam_stop')">down</button>
-     <button type="button" onmousedown="execPythonCommand('cam_left')", onmouseup="execPythonCommand('cam_stop')">left</button>
-     <button type="button" onmousedown="execPythonCommand('cam_right')", onmouseup="execPythonCommand('cam_stop')">right</button>
+     <button id="up" type="button" onclick="execPythonCommand('cam_up')">up</button>
+     <button id="down" type="button" onclick="execPythonCommand('cam_down')">down</button>
+     <button id="left" type="button" onclick="execPythonCommand('cam_left')">left</button>
+     <button id="right"type="button" onclick="execPythonCommand('cam_right')">right</button>
 
      <!--button type="button" onmousedown="execPythonCommand('motor_forward')", onmouseup="execPythonCommand('motor_stop')">up</button>
      <button type="button" onmousedown="execPythonCommand('motor_backwoard')", onmouseup="execPythonCommand('motor_stop')">down</button>

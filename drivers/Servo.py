@@ -29,6 +29,9 @@ class Servo(Device):
         self.servo.value = value
         time.sleep(delay)
 
+    def getValue(self):
+        return self.servo.value
+
     def move(self, step: float):
         if step == 0:
             return
@@ -38,3 +41,4 @@ class Servo(Device):
 
 CAMERA_SERVO_H = Servo(connectorConfig("CAMERA_SERVO_H"))
 CAMERA_SERVO_V = Servo(connectorConfig("CAMERA_SERVO_V"))
+USONIC_SERVO = Servo(connectorConfig("USONIC_SERVO"))

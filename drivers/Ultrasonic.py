@@ -14,9 +14,6 @@ class Ultrasonic(Device):
         GPIO.setup(GPIO_ECHO, GPIO.IN)
         GPIO.setup(GPIO_TRIGGER, GPIO.OUT)
 
-    def reads(self):
-        ret, frame = self.cap.read()
-
     def getDistance(self):
         # 10us is the trigger signal
         GPIO.output(GPIO_TRIGGER, GPIO.HIGH)
@@ -29,3 +26,6 @@ class Ultrasonic(Device):
             pass
         t2 = time.time()
         return ((t2 - t1) * 340 / 2) * 100
+
+
+USONIC = Ultrasonic()

@@ -1,4 +1,3 @@
-import time
 from flask import Flask, request, Response, abort, render_template, url_for, redirect
 from flask_login import (
     LoginManager,
@@ -9,11 +8,10 @@ from flask_login import (
     current_user,
 )
 from collections import defaultdict
-from drivers.Camera import CAMERA_FPS
-from services.CameraService import CAMERA_SERVICE
 from waitress import serve
 
-from services.MotorsService import MOTORS_SERVICE
+from services.WebService import WEB_SERVICE
+
 
 app = Flask(
     "__name__",
@@ -24,16 +22,6 @@ app = Flask(
 login_manager = LoginManager()
 login_manager.init_app(app)
 app.config["SECRET_KEY"] = "loginexample"
-
-
-class WebParameters:
-    def __init__(self):
-        self.enable_faces = False
-        self.identify_faces = False
-        self.enable_center = False
-
-
-WEB_PARAMETERS = WebParameters()
 
 
 class User(UserMixin):
@@ -73,18 +61,6 @@ def login():
         return render_template("login.html")
 
 
-def video_stream():
-    while True:
-        # 10 images /sec
-        time.sleep(1 / CAMERA_FPS)
-        frame, faces = CAMERA_SERVICE.getImageStream(
-            WEB_PARAMETERS.enable_faces, WEB_PARAMETERS.identify_faces
-        )
-        if WEB_PARAMETERS.enable_center and len(faces) > 0:
-            CAMERA_SERVICE.centralizeFace(faces[0])
-        yield (b" --frame\r\n" b"Content-type: imgae/jpeg\r\n\r\n" + frame + b"\r\n")
-
-
 @app.route("/camera")
 @login_required
 def camera():
@@ -95,97 +71,91 @@ def camera():
 @login_required
 def video_feed():
     return Response(
-        video_stream(), mimetype="multipart/x-mixed-replace; boundary=frame"
+        WEB_SERVICE.videoStream(), mimetype="multipart/x-mixed-replace; boundary=frame"
     )
 
 
 @app.route("/cam_enable_faces")
 @login_required
 def cam_enable_faces():
-    WEB_PARAMETERS.enable_faces = not WEB_PARAMETERS.enable_faces
+    WEB_SERVICE.switchCamEnableFaces()
     return ""
 
 
 @app.route("/identify_faces")
 @login_required
 def identify_faces():
-    WEB_PARAMETERS.identify_faces = not WEB_PARAMETERS.identify_faces
+    WEB_SERVICE.switchIdentifyFaces()
     return ""
 
 
 @app.route("/cam_centralize_faces")
 @login_required
 def cam_centralize_faces():
-    WEB_PARAMETERS.enable_center = not WEB_PARAMETERS.enable_center
+    WEB_SERVICE.switchCamCentralizeFaces()
     return ""
 
 
 @app.route("/cam_up")
 @login_required
 def cam_up():
-    CAMERA_SERVICE.moveLoop(0, -1)
+    WEB_SERVICE.camUp()
     return ""
 
 
 @app.route("/cam_down")
 @login_required
 def cam_down():
-    CAMERA_SERVICE.moveLoop(0, 1)
+    WEB_SERVICE.camDown()
     return ""
 
 
 @app.route("/cam_left")
 @login_required
 def cam_left():
-    CAMERA_SERVICE.moveLoop(-1, 0)
+    WEB_SERVICE.camLeft()
     return ""
 
 
 @app.route("/cam_right")
 @login_required
 def cam_right():
-    CAMERA_SERVICE.moveLoop(1, 0)
-    return ""
-
-
-@app.route("/cam_stop")
-@login_required
-def cam_stop():
-    CAMERA_SERVICE.stop()
+    WEB_SERVICE.camRight()
     return ""
 
 
 @app.route("/motor_forward")
 @login_required
 def motor_forward():
-    MOTORS_SERVICE.forward()
+    WEB_SERVICE.motorForward()
     return ""
 
 
 @app.route("/motor_backwoard")
 @login_required
 def motor_backwoard():
-    MOTORS_SERVICE.backward()
+    WEB_SERVICE.motorBackwoard()
+    return ""
 
 
 @app.route("/motor_left")
 @login_required
 def motor_left():
-    MOTORS_SERVICE.left()
+    WEB_SERVICE.motorLeft()
     return ""
 
 
 @app.route("/motor_right")
 @login_required
 def motor_right():
-    MOTORS_SERVICE.right()
+    WEB_SERVICE.motorRight()
     return ""
 
 
 @app.route("/motor_stop")
 @login_required
 def motor_stop():
-    MOTORS_SERVICE.stop()
+    WEB_SERVICE.motorStop()
     return ""
 
 
