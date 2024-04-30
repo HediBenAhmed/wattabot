@@ -1,28 +1,27 @@
-import asyncio
-from concurrent.futures import ProcessPoolExecutor
+from multiprocessing import Process, Queue, Manager
 import threading
 from typing import List
 from services.Command import Command
 
-processPoolExecutor = ProcessPoolExecutor(max_workers=4)
-eventLoop = asyncio.get_event_loop()
+SHARED_DICT = Manager().dict()
 
 
 class Service:
+    def __init__(self, name: str):
+        self.queue = Queue()
+        self.name = name
+
+    def consumeQueue(self):
+        while True:
+            command = self.queue.get()
+            if command is None:
+                break
+            self.executeCommand(command)
+
     def executeCommand(self, command: Command):
         pass
 
-    def sendCommand(self, service, command: Command):
-
-        return eventLoop.run_until_complete(
-            asyncio.gather(
-                eventLoop.run_in_executor(
-                    processPoolExecutor, service.executeCommand, command
-                )
-            )
-        )
-
-    def executeTasks(self, functions: List[tuple]):
+    def executeSubTasks(self, functions: List[tuple]):
 
         threads = []
         for function in functions:
@@ -32,3 +31,24 @@ class Service:
             thread.start()
         for thread in threads:
             thread.join()
+
+    def sendCommand(self, service, command: Command):
+        queue: Queue = service.queue
+        queue.put(command)
+
+    def save(self, key: str, value):
+        SHARED_DICT[key] = value
+
+    def get(self, key: str):
+        if key in SHARED_DICT:
+            return SHARED_DICT[key]
+
+        return None
+
+    def startConsumer(self, consumer):
+        service = Process(target=consumer, args=())
+        service.start()
+
+    def startProducer(self, producer):
+        service = Process(target=producer, args=())
+        service.start()

@@ -1,2 +1,12 @@
+from multiprocessing import Lock
+
+
 class Device:
-    pass
+    def __init__(self):
+        self.lock = Lock()
+
+    def lockDevice(self):
+        self.lock.acquire()
+
+    def releaseDevice(self):
+        self.lock.release()

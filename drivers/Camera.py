@@ -9,17 +9,20 @@ CAMERA_HEIGHT = cameraConfig("HEIGHT")
 
 class Camera(Device):
     def __init__(self, width=1280, height=720):
+        super().__init__()
         self.cap = cv2.VideoCapture(cameraConfig("INDEX"))
         self.setCameraConfigs(width, height)
 
     def getImage(self):
-        return self.cap.read()
+        with self.lock:
+            return self.cap.read()
 
     def setCameraConfigs(self, width: int, height: int):
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
-        self.cap.set(cv2.CAP_PROP_FPS, CAMERA_FPS)
-        self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+        with self.lock:
+            self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+            self.cap.set(cv2.CAP_PROP_FPS, CAMERA_FPS)
+            self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
     def setDefaultCameraConfigs(self):
         self.setCameraConfigs(CAMERA_WIDTH, CAMERA_HEIGHT)

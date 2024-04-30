@@ -16,6 +16,7 @@ CENTER_MARGIN = [50, 50]
 
 class CameraServoService(Service):
     def __init__(self):
+        super().__init__("CAMERA_SERVO_SERVICE")
         self.moveCamera = False
 
     def getStatus(self):
@@ -37,7 +38,7 @@ class CameraServoService(Service):
             (CAMERA_SERVO_V.setValue, (y,)),
         ]
 
-        self.executeTasks(commands)
+        self.executeSubTasks(commands)
 
         self.moveCamera = False
 
@@ -49,7 +50,7 @@ class CameraServoService(Service):
             (CAMERA_SERVO_V.move, (vStep / 100,)),
         ]
 
-        self.executeTasks(commands)
+        self.executeSubTasks(commands)
 
         self.moveCamera = False
 

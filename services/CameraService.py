@@ -33,69 +33,29 @@ class CameraService(Service):
             frame = self.adjustGamma(frame, gamma)
         return ret, frame
 
-    def getImageStream(self, enableFaces=True, identifyFaces=True, compress=10):
-        ret, frame = self.getImage(1.5)
-        if not ret:
-            return
+    def centralizeFace(self):
+        pass
 
-        faces: List[Face] = []
-        if enableFaces:
-            faces = self.scanFaces(frame, identifyFaces)
-            for face in faces:
-                x, y, w, h = face.position
-
-                cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
-
-                if face.identified:
-                    cv2.putText(
-                        frame,
-                        face.name,
-                        (x + 5, y - 5),
-                        cv2.FONT_HERSHEY_SIMPLEX,
-                        1,
-                        (255, 255, 255),
-                        2,
-                    )
-
-                    confidence = "  {0}%".format(face.confidence)
-                    cv2.putText(
-                        frame,
-                        confidence,
-                        (x + 5, y + h - 5),
-                        cv2.FONT_HERSHEY_SIMPLEX,
-                        1,
-                        (255, 255, 0),
-                        1,
-                    )
-
-        ret, buffer = cv2.imencode(
-            ".jpeg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), compress]
-        )
-        return buffer.tobytes(), faces
-
-    def scanFaces(self, frame, identifyFaces=True):
+    def scanFaces(self, frame):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         faces = []
         f = FACE_DETECTOR.detectMultiScale(
             image=gray, scaleFactor=1.2, minNeighbors=2, minSize=(30, 30)
         )
         for x, y, w, h in f:
-            id = None
-            confidence = None
-            if identifyFaces:
-                id, confidence = RECONIZER.predict(gray[y : y + h, x : x + w])
-                # Check if confidence is less then 40  ==> "0" is perfect match
-                if confidence < 49:
-                    id = NAMES[id]
-                else:
-                    id = "unknown"
+            id, confidence = RECONIZER.predict(gray[y : y + h, x : x + w])
+            # Check if confidence is less then 40  ==> "0" is perfect match
+            if confidence < 49:
+                id = NAMES[id]
+            else:
+                id = "unknown"
 
                 confidence = round(100 - confidence)
             faces.append(
                 Face(
                     gray[x : x + w, y : y + h],
                     [x, y, w, h],
-                    identifyFaces,
+                    True,
                     id,
                     confidence,
                 )
@@ -143,8 +103,15 @@ class CameraService(Service):
     def saveImage(self, frame, output):
         cv2.imwrite(output, frame)
 
-    def execute(self, compress=10, enableFaces=True, identifyFaces=True):
-        pass
+    def executeCommand(self, command: Command):
+        if command.command == "scanFaces":
+            self.scanFaces(command.getParameter("frame"))
+
+        if command.command == "getImage":
+            self.getImage(command.getParameter("gamma"))
+
+        if command.command == "streamImages":
+            self.streamImages()
 
     def adjustGamma(self, image, gamma=1.0):
 
@@ -155,5 +122,11 @@ class CameraService(Service):
 
         return cv2.LUT(image, table)
 
+    def streamImages(self):
+        while True:
+            ref, frame = self.getImage(1.5)
+            self.save("frame", frame)
+            time.sleep(1 / CAMERA_FPS)
 
-CAMERA_SERVICE = CameraService()
+
+CAMERA_SERVICE = CameraService("CAMERA_SERVICE")

@@ -11,4 +11,4 @@ class LEDService(Service):
         LED_SCREEN.matrix_display(off)
 
 
-LED_SERVICE = LEDService()
+LED_SERVICE = LEDService("LED_SERVICE")

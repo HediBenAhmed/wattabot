@@ -1,4 +1,6 @@
 import time
+
+import cv2
 from drivers.Camera import CAMERA_FPS
 from services.Command import Command
 from services.CameraService import CAMERA_SERVICE
@@ -22,17 +24,24 @@ class WebService(Service):
 
     def videoStream(self):
         while True:
-            # 10 images /sec
-            time.sleep(1 / CAMERA_FPS)
-            frame, faces = CAMERA_SERVICE.getImageStream(
-                WEB_PARAMETERS.enable_faces, WEB_PARAMETERS.identify_faces
+            # 20 images /sec
+            time.sleep(1 / 20)
+            frame = self.get("frame")
+
+            ret, buffer = cv2.imencode(
+                ".jpeg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), 20]
             )
-            if WEB_PARAMETERS.enable_center and len(faces) > 0:
-                self.sendCommand(
-                    CAMERA_SERVO_SERVICE, Command("centralizeFace", face=faces[0])
-                )
+
+            if WEB_PARAMETERS.identify_faces:
+                self.sendCommand(CAMERA_SERVICE, Command("scanFaces", frame=frame))
+
+                if WEB_PARAMETERS.enable_center and len(faces) > 0:
+                    self.sendCommand(
+                        CAMERA_SERVO_SERVICE, Command("centralizeFace", face=faces[0])
+                    )
             yield (
-                b" --frame\r\n" b"Content-type: imgae/jpeg\r\n\r\n" + frame + b"\r\n"
+                b" --frame\r\n"
+                b"Content-type: imgae/jpeg\r\n\r\n" + buffer.tobytes() + b"\r\n"
             )
 
     def switchCamEnableFaces(self):
@@ -72,4 +81,4 @@ class WebService(Service):
         self.sendCommand(MOTORS_SERVICE, Command("stop"))
 
 
-WEB_SERVICE = WebService()
+WEB_SERVICE = WebService("WEB_SERVICE")

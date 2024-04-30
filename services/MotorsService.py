@@ -69,4 +69,4 @@ class MotorsService(Service):
             self.stop()
 
 
-MOTORS_SERVICE = MotorsService()
+MOTORS_SERVICE = MotorsService("MOTORS_SERVICE")

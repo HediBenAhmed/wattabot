@@ -3,6 +3,7 @@ from drivers.Device import Device
 import time
 import RPi.GPIO as GPIO
 
+NONE = 0x0
 KEY_UP = 0x46
 KEY_LEFT = 0x44
 KEY_OK = 0x40
@@ -82,3 +83,8 @@ class IrcReceiver(Device):
                 if data[0] + data[1] == 0xFF and data[2] + data[3] == 0xFF:
                     # Data [2] is the control code we need
                     return data[2]
+            else:
+                return NONE
+
+
+IR_RECEIVER = IrcReceiver()
