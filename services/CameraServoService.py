@@ -2,8 +2,6 @@ from drivers.Camera import CAMERA_HEIGHT, CAMERA_WIDTH
 from drivers.Servo import (
     CAMERA_SERVO_H,
     CAMERA_SERVO_V,
-    SERVO_MAX_VALUE,
-    SERVO_MIN_VALUE,
 )
 
 from services.Command import Command
@@ -24,11 +22,23 @@ class CameraServoService(Service):
             self.moveCamera,
             CAMERA_SERVO_H.getValue(),
             CAMERA_SERVO_V.getValue(),
-            CAMERA_SERVO_H.getValue() >= SERVO_MAX_VALUE,
-            CAMERA_SERVO_H.getValue() <= SERVO_MIN_VALUE,
-            CAMERA_SERVO_V.getValue() >= SERVO_MAX_VALUE,
-            CAMERA_SERVO_V.getValue() <= SERVO_MIN_VALUE,
+            CAMERA_SERVO_H.getValue() >= CAMERA_SERVO_H.maxValue,
+            CAMERA_SERVO_H.getValue() <= CAMERA_SERVO_H.minValue,
+            CAMERA_SERVO_V.getValue() >= CAMERA_SERVO_V.maxValue,
+            CAMERA_SERVO_V.getValue() <= CAMERA_SERVO_V.minValue,
         )
+
+    def isHorizentalMax(self):
+        return CAMERA_SERVO_H.getValue() >= CAMERA_SERVO_H.maxValue
+
+    def isHorizentalMin(self):
+        return CAMERA_SERVO_H.getValue() <= CAMERA_SERVO_H.minValue
+
+    def isVerticalMax(self):
+        return CAMERA_SERVO_V.getValue() >= CAMERA_SERVO_V.maxValue
+
+    def isVerticalMin(self):
+        return CAMERA_SERVO_V.getValue() <= CAMERA_SERVO_V.minValue
 
     def setPosition(self, x, y):
         self.moveCamera = True

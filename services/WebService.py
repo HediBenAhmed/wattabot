@@ -8,10 +8,12 @@ from services.CameraService import CAMERA_SERVICE
 from services.CameraServoService import CAMERA_SERVO_SERVICE
 from services.MotorsService import MOTORS_SERVICE
 from services.Service import Service
+from services.SharedData import getSharedData
 
 
 class WebParameters:
     def __init__(self):
+        self.enable_streaming = False
         self.enable_faces = False
         self.identify_faces = False
         self.enable_center = False
@@ -25,30 +27,34 @@ class WebService(Service):
     def videoStream(self):
         while True:
             # 20 images /sec
-            time.sleep(1 / 20)
-            frame = self.get("frame")
+            time.sleep(1 / CAMERA_FPS)
+            frame = getSharedData("frame")
+
+            if frame is None:
+                continue
 
             ret, buffer = cv2.imencode(
                 ".jpeg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), 20]
             )
 
-            if WEB_PARAMETERS.identify_faces:
-                self.sendCommand(CAMERA_SERVICE, Command("scanFaces", frame=frame))
-
-                if WEB_PARAMETERS.enable_center and len(faces) > 0:
-                    self.sendCommand(
-                        CAMERA_SERVO_SERVICE, Command("centralizeFace", face=faces[0])
-                    )
             yield (
                 b" --frame\r\n"
                 b"Content-type: imgae/jpeg\r\n\r\n" + buffer.tobytes() + b"\r\n"
             )
 
-    def switchCamEnableFaces(self):
-        WEB_PARAMETERS.enable_faces = not WEB_PARAMETERS.enable_faces
+    def switchCamEnableStreaming(self):
+        WEB_PARAMETERS.enable_streaming = not WEB_PARAMETERS.enable_streaming
+        if WEB_PARAMETERS.enable_streaming:
+            CAMERA_SERVICE.startStreaming("frame")
+        else:
+            CAMERA_SERVICE.stopStreaming()
 
     def switchIdentifyFaces(self):
         WEB_PARAMETERS.identify_faces = not WEB_PARAMETERS.identify_faces
+        if WEB_PARAMETERS.identify_faces:
+            CAMERA_SERVICE.startScanFaces("frame", "faces")
+        else:
+            CAMERA_SERVICE.stopScanFaces()
 
     def switchCamCentralizeFaces(self):
         WEB_PARAMETERS.enable_center = not WEB_PARAMETERS.enable_center

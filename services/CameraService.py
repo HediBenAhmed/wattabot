@@ -1,14 +1,14 @@
 import time
 from typing import List
-
 from drivers.Camera import CAMERA_FPS, CAMERA_HEIGHT, CAMERA_WIDTH, CAMERA
 import cv2
-import numpy as np
 
 from services.Command import Command
 from services.CameraServoService import CAMERA_SERVO_SERVICE
 from services.Face import Face
+from services.JobService import startJobInLoop, stopJobInLoop
 from services.Service import Service
+from services.SharedData import getSharedData, saveSharedData
 
 FACE_DETECTOR = cv2.CascadeClassifier(
     cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
@@ -28,10 +28,7 @@ CENTER_MARGIN = [50, 50]
 class CameraService(Service):
 
     def getImage(self, gamma=1.0):
-        ret, frame = CAMERA.getImage()
-        if ret and gamma != 1.0:
-            frame = self.adjustGamma(frame, gamma)
-        return ret, frame
+        return CAMERA.getImage(gamma)
 
     def centralizeFace(self):
         pass
@@ -44,18 +41,18 @@ class CameraService(Service):
         )
         for x, y, w, h in f:
             id, confidence = RECONIZER.predict(gray[y : y + h, x : x + w])
+            identified = False
             # Check if confidence is less then 40  ==> "0" is perfect match
             if confidence < 49:
+                identified = True
                 id = NAMES[id]
-            else:
-                id = "unknown"
 
-                confidence = round(100 - confidence)
+            confidence = round(100 - confidence)
             faces.append(
                 Face(
                     gray[x : x + w, y : y + h],
                     [x, y, w, h],
-                    True,
+                    identified,
                     id,
                     confidence,
                 )
@@ -113,20 +110,29 @@ class CameraService(Service):
         if command.command == "streamImages":
             self.streamImages()
 
-    def adjustGamma(self, image, gamma=1.0):
+    def startStreaming(self, output: str):
+        thread, threadName = CAMERA.streamImages(output)
+        self.streamImagesThreadName = threadName
 
-        invGamma = 1.0 / gamma
-        table = np.array(
-            [((i / 255.0) ** invGamma) * 255 for i in np.arange(0, 256)]
-        ).astype("uint8")
+    def stopStreaming(self):
+        stopJobInLoop(self.streamImagesThreadName)
 
-        return cv2.LUT(image, table)
+    def startScanFaces(self, input: str, output: str):
 
-    def streamImages(self):
-        while True:
-            ref, frame = self.getImage(1.5)
-            self.save("frame", frame)
-            time.sleep(1 / CAMERA_FPS)
+        def job():
+            frame = getSharedData(input)
+            faces: List[Face] = self.scanFaces(frame)
+            print(faces)
+            saveSharedData(output, faces)
+
+        thread, threadName = startJobInLoop(job=job, jobName="scanFaces", delay=1)
+        self.scanFacesThreadName = threadName
+
+    def stopScanFaces(self):
+        stopJobInLoop(self.scanFacesThreadName)
+
+    def setMaxResolution(self):
+        CAMERA.setCameraConfigs(1280, 720)
 
 
 CAMERA_SERVICE = CameraService("CAMERA_SERVICE")

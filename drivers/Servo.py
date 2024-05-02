@@ -11,19 +11,23 @@ SERVO_MIN_VALUE = -0.7
 
 
 class Servo(Device):
-    def __init__(self, servoPin: int):
+    def __init__(
+        self, servoPin: int, minValue=SERVO_MIN_VALUE, maxValue=SERVO_MAX_VALUE
+    ):
         self.servo = GpServo(
             servoPin,
             min_pulse_width=0 / 1000,
             max_pulse_width=3 / 1000,
             pin_factory=PiGPIOFactory(),
         )
+        self.minValue = minValue
+        self.maxValue = maxValue
 
     def setValue(self, value: float):
-        if value > SERVO_MAX_VALUE:
-            value = SERVO_MAX_VALUE
-        elif value < SERVO_MIN_VALUE:
-            value = SERVO_MIN_VALUE
+        if value > self.maxValue:
+            value = self.maxValue
+        elif value < self.minValue:
+            value = self.minValue
 
         delay = abs(abs(self.servo.value) - abs(value)) * 2
         self.servo.value = value
@@ -40,5 +44,5 @@ class Servo(Device):
 
 
 CAMERA_SERVO_H = Servo(connectorConfig("CAMERA_SERVO_H"))
-CAMERA_SERVO_V = Servo(connectorConfig("CAMERA_SERVO_V"))
+CAMERA_SERVO_V = Servo(connectorConfig("CAMERA_SERVO_V"), -0.5, 0.2)
 USONIC_SERVO = Servo(connectorConfig("USONIC_SERVO"))

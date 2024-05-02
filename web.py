@@ -10,8 +10,6 @@ from flask_login import (
 )
 from collections import defaultdict
 from waitress import serve
-
-from services.CameraService import CAMERA_SERVICE
 from services.WebService import WEB_SERVICE
 
 
@@ -75,6 +73,13 @@ def video_feed():
     return Response(
         WEB_SERVICE.videoStream(), mimetype="multipart/x-mixed-replace; boundary=frame"
     )
+
+
+@app.route("/cam_enable_streaming")
+# @login_required
+def cam_enable_streaming():
+    WEB_SERVICE.switchCamEnableStreaming()
+    return ""
 
 
 @app.route("/cam_enable_faces")
@@ -162,7 +167,4 @@ def motor_stop():
 
 
 if __name__ == "__main__":
-
-    service1 = Process(target=CAMERA_SERVICE.streamImages, args=())
-    service1.start()
     serve(app, host="0.0.0.0", port=8080)
