@@ -14,7 +14,7 @@ class MotorsService(Service):
             (MOTOR_R2.goForward, ()),
         ]
 
-        self.executeTasks(commands)
+        self.executeSubTasks(commands)
 
     def backward(self):
         commands = [
@@ -24,7 +24,7 @@ class MotorsService(Service):
             (MOTOR_R2.goBackward, ()),
         ]
 
-        self.executeTasks(commands)
+        self.executeSubTasks(commands)
 
     def right(self):
         commands = [
@@ -34,7 +34,7 @@ class MotorsService(Service):
             (MOTOR_R2.goBackward, ()),
         ]
 
-        self.executeTasks(commands)
+        self.executeSubTasks(commands)
 
     def left(self):
         commands = [
@@ -44,7 +44,7 @@ class MotorsService(Service):
             (MOTOR_R2.goForward, ()),
         ]
 
-        self.executeTasks(commands)
+        self.executeSubTasks(commands)
 
     def stop(self):
         commands = [
@@ -54,7 +54,7 @@ class MotorsService(Service):
             (MOTOR_R2.stop, ()),
         ]
 
-        self.executeTasks(commands)
+        self.executeSubTasks(commands)
 
     def executeCommand(self, command: Command):
         if command.command == "forward":

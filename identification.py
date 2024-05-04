@@ -53,9 +53,9 @@ if __name__ == "__main__":
     LED_SERVICE.clear()
     CAMERA_SERVICE.setMaxResolution()
 
-    face: Face = lookupForFaces(horizentalScan=True, verticalScan=False)
-    # if face is None:
-    #    dace = lookupForFaces(horizentalScan=True, verticalScan=False)
+    face: Face = lookupForFaces(horizentalScan=False, verticalScan=True)
+    if face is None:
+        dace = lookupForFaces(horizentalScan=True, verticalScan=False)
 
     if face is None:
         LED_SERVICE.display(matrix_deny)
