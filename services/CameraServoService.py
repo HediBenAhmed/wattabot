@@ -65,32 +65,33 @@ class CameraServoService(Service):
         self.moveCamera = False
 
     def centralizeFace(self, face: Face):
-        moveTo = self.refFromCameraCenter(face.position)
-        self.move(2 * moveTo[0], 2 * moveTo[1])
+        h, v = self.refFromCameraCenter(face.position)
+        self.move(2 * h, 2 * v)
 
-        return moveTo
+        return h, v
 
     def refFromCameraCenter(self, facePosition):
         x, y, w, h = facePosition
         faceCenter = [x + w / 2, y + h / 2]
-        direction = [0, 0]
+        hdirection = 0
+        vdirection = 0
         hDiff = faceCenter[0] - CENTER_OF_CAMERA[0]
         if abs(hDiff) < CENTER_MARGIN[0]:
-            direction[0] = 0
+            hdirection = 0
         elif hDiff < 0:
-            direction[0] = 1
+            hdirection = 1
         elif hDiff > 0:
-            direction[0] = -1
+            hdirection = -1
 
         vDiff = faceCenter[1] - CENTER_OF_CAMERA[1]
         if abs(vDiff) < CENTER_MARGIN[1]:
-            direction[1] = 0
+            vdirection = 0
         elif vDiff < 0:
-            direction[1] = -1
+            vdirection = -1
         elif vDiff > 0:
-            direction[1] = 1
+            vdirection = 1
 
-        return direction
+        return hdirection, vdirection
 
     def executeCommand(self, command: Command):
         if command.command == "setPosition":

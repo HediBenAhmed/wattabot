@@ -1,10 +1,11 @@
-import time
 from typing import List
-from drivers.Camera import CAMERA_FPS, CAMERA_HEIGHT, CAMERA_WIDTH, CAMERA
+from drivers.Camera import CAMERA_HEIGHT, CAMERA_WIDTH, CAMERA
 import cv2
+import numpy as np
+from PIL import Image  # pillow package
+import os
 
 from services.Command import Command
-from services.CameraServoService import CAMERA_SERVO_SERVICE
 from services.Face import Face
 from services.JobService import startJobInLoop, stopJobInLoop
 from services.Service import Service
@@ -33,69 +34,69 @@ class CameraService(Service):
     def centralizeFace(self):
         pass
 
-    def scanFaces(self, frame):
+    def scanFaces(self, frame, identifyFace=True):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         faces = []
-        f = FACE_DETECTOR.detectMultiScale(
-            image=gray, scaleFactor=1.2, minNeighbors=2, minSize=(30, 30)
-        )
-        for x, y, w, h in f:
-            id, confidence = RECONIZER.predict(gray[y : y + h, x : x + w])
-            identified = False
-            # Check if confidence is less then 40  ==> "0" is perfect match
-            if confidence < 49:
-                identified = True
-                id = NAMES[id]
 
-            confidence = round(100 - confidence)
+        # Define min window size to be recognized as a face
+        minW = int(0.05 * CAMERA.getWidth())
+        minH = int(0.05 * CAMERA.getHeight())
+
+        f = FACE_DETECTOR.detectMultiScale(
+            image=gray, scaleFactor=1.2, minNeighbors=2, minSize=(minW, minH)
+        )
+
+        identified = False
+        name, confidence = (None, None)
+        for x, y, w, h in f:
+            if identifyFace:
+                id, confidence = RECONIZER.predict(gray[y : y + h, x : x + w])
+
+                # Check if confidence is less then 40  ==> "0" is perfect match
+                if confidence < 49:
+                    identified = True
+                    name = NAMES[id]
+
+                confidence = round(100 - confidence)
             faces.append(
                 Face(
-                    gray[x : x + w, y : y + h],
+                    gray[y : y + h, x : x + w],
                     [x, y, w, h],
                     identified,
-                    id,
+                    name,
                     confidence,
                 )
             )
 
         return faces
 
-    def lookupForFaces(self):
-        faces = []
-        self.sendCommand(CAMERA_SERVO_SERVICE, Command("setPosition", x=0, y=0.45))
+    def getImagesAndLabels(self, path):
 
-        foundFace = False
-        centralized = False
-        while not centralized and not (
-            CAMERA_SERVO_SERVICE.getStatus().vservoMax
-            or CAMERA_SERVO_SERVICE.getStatus().hservoMax
-        ):
-            if not foundFace:
-                self.sendCommand(
-                    CAMERA_SERVO_SERVICE, Command("move", hStep=0, vStep=2)
-                )
-            time.sleep(2 / CAMERA_FPS)
-            ret, frame = CAMERA.getImage()
-            if ret:
-                faces = self.scanFaces(frame, False)
+        imagePaths = [
+            os.path.join(path + "/data", f) for f in os.listdir(path + "/data")
+        ]
+        faceSamples = []
+        ids = []
 
-                if len(faces) > 0:
-                    foundFace = True
-                    face = faces[0]
-                    moveTo = self.centralizeFace(face)
+        for imagePath in imagePaths:
 
-                    if moveTo == [0, 0]:
-                        centralized = True
+            PIL_img = Image.open(imagePath).convert("L")  # convert it to grayscale
+            img_numpy = np.array(PIL_img, "uint8")
 
-        # identify face
-        CAMERA.setCameraConfigs(width=1280, height=720)
-        ret, frame = CAMERA.getImage()
-        if ret:
-            faces = self.scanFaces(frame)
+            id = int(os.path.split(imagePath)[-1].split(".")[1])
+            faces = FACE_DETECTOR.detectMultiScale(img_numpy)
 
-        CAMERA.setDefaultCameraConfigs()
+            for x, y, w, h in faces:
+                faceSamples.append(img_numpy[y : y + h, x : x + w])
+                ids.append(id)
 
-        return faces
+        return faceSamples, ids
+
+    def trainModel(self, pasth, faces, ids):
+        RECONIZER.train(faces, np.array(ids))
+
+        # Save the model into trainer/trainer.yml
+        RECONIZER.write("trainer/trainer.yml")
 
     def saveImage(self, frame, output):
         cv2.imwrite(output, frame)
@@ -133,6 +134,9 @@ class CameraService(Service):
 
     def setMaxResolution(self):
         CAMERA.setCameraConfigs(1280, 720)
+
+    def setDefaultCameraConfigs(self):
+        CAMERA.setDefaultCameraConfigs()
 
 
 CAMERA_SERVICE = CameraService("CAMERA_SERVICE")

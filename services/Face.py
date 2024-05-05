@@ -13,6 +13,5 @@ class Face:
         self.image = image
         self.position = position
         self.identified = identified
-        if identified:
-            self.name = name
-            self.confidence = confidence
+        self.name = name
+        self.confidence = confidence

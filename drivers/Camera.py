@@ -48,5 +48,11 @@ class Camera(Device):
 
         return startJobInLoop(job=job, jobName="streamImages", delay=1 / CAMERA_FPS)
 
+    def getWidth(self):
+        return self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+
+    def getHeight(self):
+        return self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+
 
 CAMERA = Camera(CAMERA_WIDTH, CAMERA_HEIGHT)
