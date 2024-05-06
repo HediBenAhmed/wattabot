@@ -1,4 +1,3 @@
-import numpy as np
 import os
 from time import sleep
 from typing import List
@@ -11,21 +10,20 @@ from drivers.LED import one, two, three, four, five, matrix_allow, matrix_deny
 import fnmatch
 
 path = "/home/hedi/wattabot/trainer"
-id = "1"
+name = "hedi"
 gamma = 1
 
 
-def countTrainImages():
-    dir_path = path + "/data"
-    count = len(fnmatch.filter(os.listdir(dir_path), "User." + id + ".*.jpg"))
+def countTrainImages(dataPath):
+    count = len(fnmatch.filter(os.listdir(dataPath), "*.jpg"))
     return count
 
 
 def waitForFace():
-    CAMERA_SERVO_SERVICE.setPosition(0, -0.20)
+    CAMERA_SERVO_SERVICE.setPosition(0, -0.25)
     while True:
         ret, frame = CAMERA_SERVICE.getImage(gamma)
-        faces: List[Face] = CAMERA_SERVICE.scanFaces(frame, False)
+        faces: List[Face] = CAMERA_SERVICE.scanFaces_dnn(frame)
         if len(faces) > 0:
             return faces[0]
         sleep(2 / CAMERA_FPS)
@@ -35,7 +33,7 @@ def centralizeFace():
     while True:
         sleep(1 / CAMERA_FPS)
         ret, frame = CAMERA_SERVICE.getImage(gamma)
-        faces: List[Face] = CAMERA_SERVICE.scanFaces(frame, False)
+        faces: List[Face] = CAMERA_SERVICE.scanFaces_dnn(frame)
         if len(faces) > 0:
             h, v = CAMERA_SERVO_SERVICE.centralizeFace(faces[0])
 
@@ -44,7 +42,13 @@ def centralizeFace():
 
 
 def dataCollect():
-    totalCount = countTrainImages()
+    dataDirectory = os.path.join(path, "data", name)
+
+    if not os.path.exists(dataDirectory):
+        os.makedirs(dataDirectory)
+        totalCount = 0
+    else:
+        totalCount = countTrainImages(dataDirectory)
     count = 1
     while True:
         print(count, "%")
@@ -53,7 +57,7 @@ def dataCollect():
 
         sleep(1 / CAMERA_FPS)
         ret, frame = CAMERA_SERVICE.getImage(gamma)
-        faces: List[Face] = CAMERA_SERVICE.scanFaces(frame, False)
+        faces: List[Face] = CAMERA_SERVICE.scanFaces_dnn(frame)
 
         if len(faces) != 1:
             print("no faces")
@@ -61,30 +65,29 @@ def dataCollect():
 
         CAMERA_SERVICE.saveImage(
             faces[0].image,
-            path + "/data/User." + id + "." + str(count + totalCount) + ".jpg",
+            dataDirectory + "/" + str(count + totalCount) + ".jpg",
         )
 
         count += 1
 
 
 def trainingModel():
-    faces, ids = CAMERA_SERVICE.getImagesAndLabels(path)
-    CAMERA_SERVICE.trainModel(path, faces, np.array(ids))
+    CAMERA_SERVICE.trainModel_dnn(path)
 
 
 def testModel():
     while True:
         ret, frame = CAMERA_SERVICE.getImage(gamma)
-        faces: List[Face] = CAMERA_SERVICE.scanFaces(frame)
+        faces: List[Face] = CAMERA_SERVICE.scanFaces_dnn(frame)
         if len(faces) > 0:
-            CAMERA_SERVO_SERVICE.centralizeFace(faces[0])
-            print(faces[0].name, faces[0].confidence, faces[0].identified)
+            faces = CAMERA_SERVICE.identifyFaces_dnn(faces)
             if faces[0].identified:
+                print(faces[0].name, faces[0].confidence, faces[0].identified)
                 return
         sleep(2 / CAMERA_FPS)
 
 
-if __name__ == "__main__":
+def fraceTraining():
     try:
         LED_SERVICE.clear()
         CAMERA_SERVICE.setDefaultCameraConfigs()
@@ -96,7 +99,6 @@ if __name__ == "__main__":
         centralizeFace()
 
         LED_SERVICE.display(three)
-        CAMERA_SERVICE.setMaxResolution()
         dataCollect()
 
         LED_SERVICE.display(four)
@@ -109,3 +111,7 @@ if __name__ == "__main__":
     except Exception as error:
         LED_SERVICE.display(matrix_deny)
         print("An exception occurred:", error)
+
+
+if __name__ == "__main__":
+    fraceTraining()

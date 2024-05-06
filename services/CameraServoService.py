@@ -8,8 +8,8 @@ from services.Command import Command
 from services.Face import Face
 from services.Service import Service
 
-CENTER_OF_CAMERA = [CAMERA_WIDTH / 2, CAMERA_HEIGHT / 2]
-CENTER_MARGIN = [50, 50]
+CENTER_OF_CAMERA = (CAMERA_WIDTH / 2, CAMERA_HEIGHT / 2)
+CENTER_MARGIN = (50, 50)
 
 
 class CameraServoService(Service):
@@ -72,10 +72,12 @@ class CameraServoService(Service):
 
     def refFromCameraCenter(self, facePosition):
         x, y, w, h = facePosition
-        faceCenter = [x + w / 2, y + h / 2]
+        faceCenter = (x + w / 2, y + h / 2)
         hdirection = 0
         vdirection = 0
         hDiff = faceCenter[0] - CENTER_OF_CAMERA[0]
+        vDiff = faceCenter[1] - CENTER_OF_CAMERA[1]
+
         if abs(hDiff) < CENTER_MARGIN[0]:
             hdirection = 0
         elif hDiff < 0:
@@ -83,7 +85,6 @@ class CameraServoService(Service):
         elif hDiff > 0:
             hdirection = -1
 
-        vDiff = faceCenter[1] - CENTER_OF_CAMERA[1]
         if abs(vDiff) < CENTER_MARGIN[1]:
             vdirection = 0
         elif vDiff < 0:

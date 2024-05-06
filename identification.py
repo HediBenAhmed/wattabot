@@ -49,7 +49,7 @@ def getIdentifiedFaces(faces: List[Face]):
     return None
 
 
-if __name__ == "__main__":
+def identification():
     LED_SERVICE.clear()
     CAMERA_SERVICE.setMaxResolution()
 
@@ -62,3 +62,7 @@ if __name__ == "__main__":
     else:
         print(face.name)
         LED_SERVICE.display(matrix_allow)
+
+
+if __name__ == "__main__":
+    identification()

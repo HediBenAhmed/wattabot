@@ -15,3 +15,6 @@ class Face:
         self.identified = identified
         self.name = name
         self.confidence = confidence
+
+    def __str__(self):
+        return f"Object({self.position}, {self.identified}, {self.name}, {self.confidence})"
