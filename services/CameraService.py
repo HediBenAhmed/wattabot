@@ -111,7 +111,7 @@ class CameraService(Service):
                 faces.append(
                     Face(
                         face,
-                        [startX, startY, endX, endY],
+                        [startX, startY, endX - startX, endY - startY],
                         False,
                         None,
                         None,
@@ -259,6 +259,47 @@ class CameraService(Service):
         f = open("/home/hedi/wattabot/face_detection_model/label_encoder.pickle", "wb")
         f.write(pickle.dumps(le))
         f.close()
+
+    def imageStream(self, identifyFaces: False, compression=20):
+        _, frame = CAMERA_SERVICE.getImage()
+
+        buffer = None
+        faces = []
+
+        if identifyFaces:
+            faces = self.scanFaces_dnn(frame)
+            faces = self.identifyFaces_dnn(faces)
+
+            _, compressedBuffer = cv2.imencode(
+                ".jpeg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), compression]
+            )
+
+            frame = cv2.imdecode(
+                np.frombuffer(compressedBuffer, dtype=np.uint8), cv2.IMREAD_UNCHANGED
+            )
+            for face in faces:
+                (x, y, w, h) = face.position
+                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                cv2.putText(
+                    frame,
+                    face.name,
+                    (x, y),
+                    cv2.FONT_HERSHEY_PLAIN,
+                    1.5,
+                    (0, 255, 0),
+                    2,
+                )
+
+                _, buffer = cv2.imencode(
+                    ".jpeg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), 100]
+                )
+
+        if buffer is None:
+            _, buffer = cv2.imencode(
+                ".jpeg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), compression]
+            )
+
+        return buffer.tobytes(), faces
 
     def saveImage(self, frame, output):
         cv2.imwrite(output, frame)

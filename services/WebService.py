@@ -1,6 +1,7 @@
 import time
 
 import cv2
+import numpy as np
 from drivers.Camera import CAMERA_FPS
 from services.Command import Command
 from services.CameraService import CAMERA_SERVICE
@@ -8,7 +9,6 @@ from services.CameraService import CAMERA_SERVICE
 from services.CameraServoService import CAMERA_SERVO_SERVICE
 from services.MotorsService import MOTORS_SERVICE
 from services.Service import Service
-from services.SharedData import getSharedData
 
 
 class WebParameters:
@@ -28,48 +28,36 @@ class WebService(Service):
         while True:
             # 20 images /sec
             time.sleep(1 / CAMERA_FPS)
-            frame = getSharedData("frame")
 
-            if frame is None:
-                continue
-
-            ret, buffer = cv2.imencode(
-                ".jpeg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), 20]
+            streamBytes, faces = CAMERA_SERVICE.imageStream(
+                WEB_PARAMETERS.identify_faces, 20
             )
 
             yield (
                 b" --frame\r\n"
-                b"Content-type: imgae/jpeg\r\n\r\n" + buffer.tobytes() + b"\r\n"
+                b"Content-type: imgae/jpeg\r\n\r\n" + streamBytes + b"\r\n"
             )
 
-    def switchCamEnableStreaming(self):
-        WEB_PARAMETERS.enable_streaming = not WEB_PARAMETERS.enable_streaming
-        if WEB_PARAMETERS.enable_streaming:
-            CAMERA_SERVICE.startStreaming("frame")
-        else:
-            CAMERA_SERVICE.stopStreaming()
+            if WEB_PARAMETERS.enable_center and len(faces) > 0:
+                CAMERA_SERVO_SERVICE.centralizeFace(faces[0])
 
     def switchIdentifyFaces(self):
         WEB_PARAMETERS.identify_faces = not WEB_PARAMETERS.identify_faces
-        if WEB_PARAMETERS.identify_faces:
-            CAMERA_SERVICE.startScanFaces("frame", "faces")
-        else:
-            CAMERA_SERVICE.stopScanFaces()
 
     def switchCamCentralizeFaces(self):
         WEB_PARAMETERS.enable_center = not WEB_PARAMETERS.enable_center
 
     def camUp(self):
-        self.sendCommand(CAMERA_SERVO_SERVICE, Command("move", hStep=0, vStep=-1))
+        CAMERA_SERVO_SERVICE.move(hStep=0, vStep=-1)
 
     def camDown(self):
-        self.sendCommand(CAMERA_SERVO_SERVICE, Command("move", hStep=0, vStep=1))
+        CAMERA_SERVO_SERVICE.move(hStep=0, vStep=1)
 
     def camLeft(self):
-        self.sendCommand(CAMERA_SERVO_SERVICE, Command("move", hStep=-1, vStep=0))
+        CAMERA_SERVO_SERVICE.move(hStep=-1, vStep=0)
 
     def camRight(self):
-        self.sendCommand(CAMERA_SERVO_SERVICE, Command("move", hStep=1, vStep=0))
+        CAMERA_SERVO_SERVICE.move(hStep=1, vStep=0)
 
     def motorForward(self):
         self.sendCommand(MOTORS_SERVICE, Command("forward"))

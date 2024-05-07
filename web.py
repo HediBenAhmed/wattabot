@@ -1,4 +1,3 @@
-from multiprocessing import Process
 from flask import Flask, request, Response, abort, render_template, url_for, redirect
 from flask_login import (
     LoginManager,
@@ -73,20 +72,6 @@ def video_feed():
     return Response(
         WEB_SERVICE.videoStream(), mimetype="multipart/x-mixed-replace; boundary=frame"
     )
-
-
-@app.route("/cam_enable_streaming")
-# @login_required
-def cam_enable_streaming():
-    WEB_SERVICE.switchCamEnableStreaming()
-    return ""
-
-
-@app.route("/cam_enable_faces")
-# @login_required
-def cam_enable_faces():
-    WEB_SERVICE.switchCamEnableFaces()
-    return ""
 
 
 @app.route("/identify_faces")

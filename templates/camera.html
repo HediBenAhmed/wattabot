@@ -14,9 +14,6 @@
   <body>
      <img id="bg" src="{{ url_for('video_feed') }}">
      <br/>
-     <label for="streaming">streaming</label><input type="checkbox" id="streaming" value="streaming" onclick="execPythonCommand('cam_enable_streaming')">
-
-     <label for="faces">faces</label><input type="checkbox" id="faces" value="faces" onclick="execPythonCommand('cam_enable_faces')">
      <label for="identify">identify</label><input type="checkbox" id="identify" value="identify" onclick="execPythonCommand('identify_faces')">
      <label for="centralize">centralize</label><input type="checkbox" id="centralize" value="centralize" onclick="execPythonCommand('cam_centralize_faces')">
      <button id="up" type="button" onclick="execPythonCommand('cam_up')">up</button>

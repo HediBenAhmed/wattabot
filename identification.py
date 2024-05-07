@@ -8,6 +8,8 @@ from services.Face import Face
 from services.LEDService import LED_SERVICE
 from drivers.LED import matrix_deny, matrix_allow
 
+gamma = 1
+
 
 def lookupForFaces(horizentalScan=False, verticalScan=True):
     CAMERA_SERVO_SERVICE.setPosition(
@@ -27,9 +29,10 @@ def lookupForFaces(horizentalScan=False, verticalScan=True):
         )
 
         sleep(2 / CAMERA_FPS)
-        ret, frame = CAMERA_SERVICE.getImage(1.5)
+        ret, frame = CAMERA_SERVICE.getImage(gamma)
 
-        faces = CAMERA_SERVICE.scanFaces(frame)
+        faces = CAMERA_SERVICE.scanFaces_dnn(frame)
+        faces = CAMERA_SERVICE.identifyFaces_dnn(faces)
 
         identified = getIdentifiedFaces(faces)
         if identified is not None:
@@ -51,16 +54,15 @@ def getIdentifiedFaces(faces: List[Face]):
 
 def identification():
     LED_SERVICE.clear()
-    CAMERA_SERVICE.setMaxResolution()
 
     face: Face = lookupForFaces(horizentalScan=False, verticalScan=True)
     if face is None:
-        dace = lookupForFaces(horizentalScan=True, verticalScan=False)
+        face = lookupForFaces(horizentalScan=True, verticalScan=False)
 
     if face is None:
         LED_SERVICE.display(matrix_deny)
     else:
-        print(face.name)
+        print(face.name, face.confidence)
         LED_SERVICE.display(matrix_allow)
 
 
