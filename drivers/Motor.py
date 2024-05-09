@@ -1,8 +1,6 @@
 from drivers.Device import Device
 import RPi.GPIO as GPIO
 
-from services.Configurations import connectorConfig
-
 
 class Motor(Device):
     def __init__(self, in1: int, in2: int, pwm: int):
@@ -22,37 +20,15 @@ class Motor(Device):
 
     def goForward(self):
         self.pwm.start(0)
-        GPIO.output(self.in2, GPIO.LOW)  # Upper Left forward
+        GPIO.output(self.in2, GPIO.LOW)
         GPIO.output(self.in1, GPIO.HIGH)
         self.pwm.ChangeDutyCycle(50)
 
     def goBackward(self):
         self.pwm.start(0)
-        GPIO.output(self.in2, GPIO.HIGH)  # Upper Left forward
+        GPIO.output(self.in2, GPIO.HIGH)
         GPIO.output(self.in1, GPIO.LOW)
         self.pwm.ChangeDutyCycle(50)
 
     def stop(self):
         self.pwm.stop()
-
-
-MOTOR_L1 = Motor(
-    connectorConfig("M2_IN1"),
-    connectorConfig("M2_IN2"),
-    connectorConfig("M2_PWM"),
-)
-MOTOR_L2 = Motor(
-    connectorConfig("M1_IN1"),
-    connectorConfig("M1_IN2"),
-    connectorConfig("M1_PWM"),
-)
-MOTOR_R1 = Motor(
-    connectorConfig("M3_IN1"),
-    connectorConfig("M3_IN2"),
-    connectorConfig("M3_PWM"),
-)
-MOTOR_R2 = Motor(
-    connectorConfig("M4_IN1"),
-    connectorConfig("M4_IN2"),
-    connectorConfig("M4_PWM"),
-)

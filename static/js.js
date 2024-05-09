@@ -1,14 +1,22 @@
 // pythonCommand can be any code in python
 function execPythonCommand(pythonCommand){
-    var request = new XMLHttpRequest()
-    request.open("GET", "/" + pythonCommand, true)
-    request.send()
+    $.ajax({ 
+      url: '/'+pythonCommand, 
+      type: 'GET', 
+      contentType: 'application/json', 
+      success: function(response) { 
+          document.getElementById('output').innerHTML = response; 
+      }, 
+      error: function(error) { 
+          console.log(error); 
+      } 
+  }); 
 }
 
 
 const clickAndHold = (btnEl) => {
     let timerId;
-    const DURATION = 20;
+    const DURATION = 50;
 
     //handle when clicking down
     const onMouseDown = () => {
@@ -40,10 +48,10 @@ const clickAndHold = (btnEl) => {
 
   //onMount
   document.addEventListener("DOMContentLoaded", function () {
-    let camUp = document.getElementById("up");
-    let camDwn = document.getElementById("down");
-    let camLeft = document.getElementById("left");
-    let camRight = document.getElementById("right");
+    let camUp = document.getElementById("cupBtn");
+    let camDwn = document.getElementById("cdownBtn");
+    let camLeft = document.getElementById("cleftBtn");
+    let camRight = document.getElementById("crightBtn");
     clickAndHold(camUp);
     clickAndHold(camDwn);
     clickAndHold(camLeft);

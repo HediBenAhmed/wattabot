@@ -20,7 +20,7 @@ def countTrainImages(dataPath):
 
 
 def waitForFace():
-    CAMERA_SERVO_SERVICE.setPosition(0, -0.25)
+    CAMERA_SERVO_SERVICE.setPosition(0, -0.0)
     while True:
         ret, frame = CAMERA_SERVICE.getImage(gamma)
         faces: List[Face] = CAMERA_SERVICE.scanFaces_dnn(frame)

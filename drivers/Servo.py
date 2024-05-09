@@ -4,8 +4,6 @@ import time
 from gpiozero import Servo as GpServo
 from gpiozero.pins.pigpio import PiGPIOFactory
 
-from services.Configurations import connectorConfig
-
 SERVO_MAX_VALUE = 0.7
 SERVO_MIN_VALUE = -0.7
 
@@ -29,7 +27,8 @@ class Servo(Device):
         elif value < self.minValue:
             value = self.minValue
 
-        delay = abs(abs(self.servo.value) - abs(value)) * 2
+        delay = abs(self.servo.value - value)
+
         self.servo.value = value
         time.sleep(delay)
 
@@ -41,8 +40,3 @@ class Servo(Device):
             return
 
         self.setValue(self.servo.value + step)
-
-
-CAMERA_SERVO_H = Servo(connectorConfig("CAMERA_SERVO_H"))
-CAMERA_SERVO_V = Servo(connectorConfig("CAMERA_SERVO_V"), -0.5, 0.2)
-USONIC_SERVO = Servo(connectorConfig("USONIC_SERVO"))

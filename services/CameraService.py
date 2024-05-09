@@ -1,6 +1,6 @@
 import pickle
 from typing import List
-from drivers.Camera import CAMERA_HEIGHT, CAMERA_WIDTH, CAMERA
+from drivers.Camera import CAMERA_HEIGHT, CAMERA_WIDTH, Camera
 import cv2
 import numpy as np
 from PIL import Image
@@ -11,7 +11,7 @@ from services.Command import Command
 from services.Face import Face
 from services.JobService import startJobInLoop, stopJobInLoop
 from services.Service import Service
-from services.SharedData import getSharedData, saveSharedData
+from services.SharedData import getSharedData, setSharedData, setSharedData
 
 FACE_DETECTOR = cv2.CascadeClassifier(
     cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
@@ -40,16 +40,23 @@ CENTER_MARGIN = [50, 50]
 
 class CameraService(Service):
 
+    def __init__(self, name: str):
+        super().__init__(name)
+        self.CAMERA = Camera(CAMERA_WIDTH, CAMERA_HEIGHT)
+
     def getImage(self, gamma=1.0):
-        return CAMERA.getImage(gamma)
+        ret, frame = self.CAMERA.getImage(gamma)
+
+        setSharedData("CameraService.frame", frame)
+        return ret, frame
 
     def scanFaces_haar(self, frame, identifyFace=True):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         faces = []
 
         # Define min window size to be recognized as a face
-        minW = int(0.05 * CAMERA.getWidth())
-        minH = int(0.05 * CAMERA.getHeight())
+        minW = int(0.05 * self.CAMERA.getWidth())
+        minH = int(0.05 * self.CAMERA.getHeight())
 
         f = FACE_DETECTOR.detectMultiScale(
             image=gray, scaleFactor=1.2, minNeighbors=2, minSize=(minW, minH)
@@ -260,46 +267,13 @@ class CameraService(Service):
         f.write(pickle.dumps(le))
         f.close()
 
-    def imageStream(self, identifyFaces: False, compression=20):
-        _, frame = CAMERA_SERVICE.getImage()
+    def imageStream(self, compression=20, gamma=1.0):
+        _, frame = self.getImage(gamma)
+        _, buffer = cv2.imencode(
+            ".jpeg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), compression]
+        )
 
-        buffer = None
-        faces = []
-
-        if identifyFaces:
-            faces = self.scanFaces_dnn(frame)
-            faces = self.identifyFaces_dnn(faces)
-
-            _, compressedBuffer = cv2.imencode(
-                ".jpeg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), compression]
-            )
-
-            frame = cv2.imdecode(
-                np.frombuffer(compressedBuffer, dtype=np.uint8), cv2.IMREAD_UNCHANGED
-            )
-            for face in faces:
-                (x, y, w, h) = face.position
-                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-                cv2.putText(
-                    frame,
-                    face.name,
-                    (x, y),
-                    cv2.FONT_HERSHEY_PLAIN,
-                    1.5,
-                    (0, 255, 0),
-                    2,
-                )
-
-                _, buffer = cv2.imencode(
-                    ".jpeg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), 100]
-                )
-
-        if buffer is None:
-            _, buffer = cv2.imencode(
-                ".jpeg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), compression]
-            )
-
-        return buffer.tobytes(), faces
+        return buffer.tobytes()
 
     def saveImage(self, frame, output):
         cv2.imwrite(output, frame)
@@ -315,7 +289,7 @@ class CameraService(Service):
             self.streamImages()
 
     def startStreaming(self, output: str):
-        thread, threadName = CAMERA.streamImages(output)
+        thread, threadName = self.CAMERA.streamImages(output)
         self.streamImagesThreadName = threadName
 
     def stopStreaming(self):
@@ -326,7 +300,7 @@ class CameraService(Service):
         def job():
             frame = getSharedData(input)
             faces: List[Face] = self.scanFaces(frame)
-            saveSharedData(output, faces)
+            setSharedData(output, faces)
 
         thread, threadName = startJobInLoop(job=job, jobName="scanFaces", delay=1)
         self.scanFacesThreadName = threadName
@@ -335,10 +309,20 @@ class CameraService(Service):
         stopJobInLoop(self.scanFacesThreadName)
 
     def setMaxResolution(self):
-        CAMERA.setCameraConfigs(1280, 720)
+        self.CAMERA.setCameraConfigs(1280, 720)
 
     def setDefaultCameraConfigs(self):
-        CAMERA.setDefaultCameraConfigs()
+        self.CAMERA.setDefaultCameraConfigs()
+
+    def getIdentifiedFace(self, faces: List[Face]):
+        if faces is None:
+            return None
+
+        for face in faces:
+            if face.identified:
+                return face
+
+        return None
 
 
 CAMERA_SERVICE = CameraService("CAMERA_SERVICE")

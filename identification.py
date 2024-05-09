@@ -34,22 +34,11 @@ def lookupForFaces(horizentalScan=False, verticalScan=True):
         faces = CAMERA_SERVICE.scanFaces_dnn(frame)
         faces = CAMERA_SERVICE.identifyFaces_dnn(faces)
 
-        identified = getIdentifiedFaces(faces)
+        identified = CAMERA_SERVICE.getIdentifiedFace(faces)
         if identified is not None:
             return identified
 
     return identified
-
-
-def getIdentifiedFaces(faces: List[Face]):
-    if faces is None:
-        return None
-
-    for face in faces:
-        if face.identified:
-            return face
-
-    return None
 
 
 def identification():

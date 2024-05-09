@@ -1,10 +1,8 @@
 from drivers.Camera import CAMERA_HEIGHT, CAMERA_WIDTH
-from drivers.Servo import (
-    CAMERA_SERVO_H,
-    CAMERA_SERVO_V,
-)
+from drivers.Servo import Servo
 
 from services.Command import Command
+from services.Configurations import connectorConfig
 from services.Face import Face
 from services.Service import Service
 
@@ -16,36 +14,27 @@ class CameraServoService(Service):
     def __init__(self):
         super().__init__("CAMERA_SERVO_SERVICE")
         self.moveCamera = False
-
-    def getStatus(self):
-        return CameraServoStatus(
-            self.moveCamera,
-            CAMERA_SERVO_H.getValue(),
-            CAMERA_SERVO_V.getValue(),
-            CAMERA_SERVO_H.getValue() >= CAMERA_SERVO_H.maxValue,
-            CAMERA_SERVO_H.getValue() <= CAMERA_SERVO_H.minValue,
-            CAMERA_SERVO_V.getValue() >= CAMERA_SERVO_V.maxValue,
-            CAMERA_SERVO_V.getValue() <= CAMERA_SERVO_V.minValue,
-        )
+        self.CAMERA_SERVO_H = Servo(connectorConfig("CAMERA_SERVO_H"))
+        self.CAMERA_SERVO_V = Servo(connectorConfig("CAMERA_SERVO_V"), -0.5, 0.2)
 
     def isHorizentalMax(self):
-        return CAMERA_SERVO_H.getValue() >= CAMERA_SERVO_H.maxValue
+        return self.CAMERA_SERVO_H.getValue() >= self.CAMERA_SERVO_H.maxValue
 
     def isHorizentalMin(self):
-        return CAMERA_SERVO_H.getValue() <= CAMERA_SERVO_H.minValue
+        return self.CAMERA_SERVO_H.getValue() <= self.CAMERA_SERVO_H.minValue
 
     def isVerticalMax(self):
-        return CAMERA_SERVO_V.getValue() >= CAMERA_SERVO_V.maxValue
+        return self.CAMERA_SERVO_V.getValue() >= self.CAMERA_SERVO_V.maxValue
 
     def isVerticalMin(self):
-        return CAMERA_SERVO_V.getValue() <= CAMERA_SERVO_V.minValue
+        return self.CAMERA_SERVO_V.getValue() <= self.CAMERA_SERVO_V.minValue
 
     def setPosition(self, x, y):
         self.moveCamera = True
 
         commands = [
-            (CAMERA_SERVO_H.setValue, (x,)),
-            (CAMERA_SERVO_V.setValue, (y,)),
+            (self.CAMERA_SERVO_H.setValue, (x,)),
+            (self.CAMERA_SERVO_V.setValue, (y,)),
         ]
 
         self.executeSubTasks(commands)
@@ -56,8 +45,8 @@ class CameraServoService(Service):
         self.moveCamera = True
 
         commands = [
-            (CAMERA_SERVO_H.move, (hStep / 100,)),
-            (CAMERA_SERVO_V.move, (vStep / 100,)),
+            (self.CAMERA_SERVO_H.move, (hStep / 100,)),
+            (self.CAMERA_SERVO_V.move, (vStep / 100,)),
         ]
 
         self.executeSubTasks(commands)
@@ -101,28 +90,6 @@ class CameraServoService(Service):
             self.move(command.getParameter("hStep"), command.getParameter("vStep"))
         elif command.command == "centralizeFace":
             self.centralizeFace(command.getParameter("face"))
-        if command.command == "stop":
-            self.stop()
-
-
-class CameraServoStatus:
-    def __init__(
-        self,
-        cameraMoving: bool,
-        hservo: float,
-        vservo: float,
-        hservoMax: bool,
-        hservoMin: bool,
-        vservoMax: bool,
-        vservoMin: bool,
-    ):
-        self.cameraMoving = cameraMoving
-        self.vservo = vservo
-        self.hservo = hservo
-        self.hservoMax = hservoMax
-        self.hservoMin = hservoMin
-        self.vservoMax = vservoMax
-        self.vservoMin = vservoMin
 
 
 CAMERA_SERVO_SERVICE = CameraServoService()

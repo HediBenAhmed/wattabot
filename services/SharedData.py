@@ -4,7 +4,7 @@ from time import sleep
 SHARED_DICT = Manager().dict()
 
 
-def saveSharedData(key: str, value):
+def setSharedData(key: str, value):
     SHARED_DICT[key] = value
 
 

@@ -1,4 +1,15 @@
-from flask import Flask, request, Response, abort, render_template, url_for, redirect
+import json
+from typing import List
+from flask import (
+    Flask,
+    jsonify,
+    request,
+    Response,
+    abort,
+    render_template,
+    url_for,
+    redirect,
+)
 from flask_login import (
     LoginManager,
     login_user,
@@ -9,6 +20,7 @@ from flask_login import (
 )
 from collections import defaultdict
 from waitress import serve
+from services.Face import Face
 from services.WebService import WEB_SERVICE
 
 
@@ -77,8 +89,13 @@ def video_feed():
 @app.route("/identify_faces")
 # @login_required
 def identify_faces():
-    WEB_SERVICE.switchIdentifyFaces()
-    return ""
+    face = WEB_SERVICE.identifyFace()
+
+    result = None
+    if face is not None:
+        result = {"name": face.name, "confidence": face.confidence}
+
+    return json.dumps(result)
 
 
 @app.route("/cam_centralize_faces")
@@ -113,6 +130,12 @@ def cam_left():
 # @login_required
 def cam_right():
     WEB_SERVICE.camRight()
+    return ""
+
+
+@app.route("/cam_save")
+# @login_required
+def cam_save():
     return ""
 
 

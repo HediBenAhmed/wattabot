@@ -1,29 +1,95 @@
-<html>
- <head>
-   <meta name="viewport" content="width=device-width, initial-scale=1">
-   <style>
-      img { display: block;
-            margin-left: auto;
-            margin-right: auto;
-           }
-      h1 {text-align: center;}
-    </style>
-    <script src="{{url_for('static', filename='js.js')}}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-  </head>
-  <body>
-     <img id="bg" src="{{ url_for('video_feed') }}">
-     <br/>
-     <label for="identify">identify</label><input type="checkbox" id="identify" value="identify" onclick="execPythonCommand('identify_faces')">
-     <label for="centralize">centralize</label><input type="checkbox" id="centralize" value="centralize" onclick="execPythonCommand('cam_centralize_faces')">
-     <button id="up" type="button" onclick="execPythonCommand('cam_up')">up</button>
-     <button id="down" type="button" onclick="execPythonCommand('cam_down')">down</button>
-     <button id="left" type="button" onclick="execPythonCommand('cam_left')">left</button>
-     <button id="right"type="button" onclick="execPythonCommand('cam_right')">right</button>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="{{url_for('static', filename='jquery-3.7.1.min.js')}}"></script>
+<script src="{{url_for('static', filename='js.js')}}"></script>
 
-     <!--button type="button" onmousedown="execPythonCommand('motor_forward')", onmouseup="execPythonCommand('motor_stop')">up</button>
-     <button type="button" onmousedown="execPythonCommand('motor_backwoard')", onmouseup="execPythonCommand('motor_stop')">down</button>
-     <button type="button" onmousedown="execPythonCommand('motor_left')", onmouseup="execPythonCommand('motor_stop')">left</button>
-     <button type="button" onmousedown="execPythonCommand('motor_right')", onmouseup="execPythonCommand('motor_stop')">right</button-->
-  </body>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robot Move Control with Camera</title>
+<style>
+	.left { grid-area: left; }
+	.right { grid-area: right; }
+
+	.grid-container {
+		display: grid;
+		grid-template-areas: 'left right';
+		gap: 10px;
+		padding: 10px;
+	}
+
+    .container {
+        text-align: center;
+    }
+    .btn {
+        user-select: none;
+        display: inline-block;
+        padding: 10px 10px;
+        font-size: 18px;
+        cursor: pointer;
+        margin: 10px;
+		width: 110px;
+    }
+    #videoFeed {
+        margin-top: 10px;
+        width: 640px; /* Adjust width as needed */
+        height: 480px; /* Adjust height as needed */
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div>
+        <img id="videoFeed" src="{{ url_for('video_feed') }}">
+    </div>
+
+	<div>
+        <div>
+            <button id="identify" class="btn" onclick="execPythonCommand('identify_faces')">identify</button>
+        </div>
+        
+        <div>
+            <label for="centralize">centralize</label><input type="checkbox" id="centralize" value="centralize" onclick="execPythonCommand('cam_centralize_faces')">
+        </div>
+    </div>
+    
+	<div class="grid-container">
+	<div class="left">
+		Camera
+		<div>
+			<button class="btn" id="cupBtn" onclick="execPythonCommand('cam_up')">Up</button>
+		</div>
+		<div>
+			<button class="btn" id="cleftBtn" onclick="execPythonCommand('cam_left')">Left</button>
+			<button class="btn" id="cstopBtn" onclick="execPythonCommand('cam_save')">Save</button>
+			<button class="btn" id="crightBtn" onclick="execPythonCommand('cam_right')">Right</button>
+		</div>
+		<div>
+			<button class="btn" id="cdownBtn" onclick="execPythonCommand('cam_down')">Down</button>
+		</div>
+	</div>
+	
+	<div class="right">
+		Motor
+		<div>
+			<button class="btn" id="mforwardBtn" onmousedown="execPythonCommand('motor_forward')" onmouseup="execPythonCommand('motor_stop')">Forward</button>
+		</div>
+		<div>
+			<button class="btn" id="mleftBtn"  onmousedown="execPythonCommand('motor_left')" onmouseup="execPythonCommand('motor_stop')">Left</button>
+			<button class="btn" id="mstopBtn"  onclick="execPythonCommand('motor_stop')">Stop</button>
+			<button class="btn" id="mrightBtn"  onmousedown="execPythonCommand('motor_right')" onmouseup="execPythonCommand('motor_stop')">Right</button>
+		</div>
+		<div>
+			<button class="btn" id="mbackwardBtn" onmousedown="execPythonCommand('motor_backwoard')" onmouseup="execPythonCommand('motor_stop')">Backward</button>
+		</div>
+	</div>
+	</div>
+    <div id="output"></div>
+</div>
+
+<script>
+</script>
+
+</body>
 </html>

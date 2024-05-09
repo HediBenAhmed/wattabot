@@ -1,7 +1,8 @@
 from time import sleep
 from typing import List
 from drivers.Ultrasonic import USONIC
-from drivers.Servo import USONIC_SERVO
+from drivers.Servo import Servo
+from services.Configurations import connectorConfig
 from services.Object import Object, geObjectByDistance
 from services.Service import Service
 
@@ -10,34 +11,39 @@ MAX_DISTANCE = 10000
 
 class UltrasonicService(Service):
 
-    def getDistance(self):
+    def __init__(self, name: str):
+        super().__init__(name)
+        self.USONIC_SERVO = Servo(connectorConfig("USONIC_SERVO"))
+
+    def getDistance(self, ndigits=0):
         min = MAX_DISTANCE
         for i in range(0, 10):
             d = USONIC.getDistance()
             min = d if d < min else min
             sleep(0.01)
 
+        min = round(min, ndigits)
         return min
 
     def move(self, step):
-        USONIC_SERVO.move(step / 100)
+        self.USONIC_SERVO.move(step / 100)
 
     def setPosition(self, x):
-        USONIC_SERVO.setValue(x)
+        self.USONIC_SERVO.setValue(x)
 
     def isMax(self):
-        return USONIC_SERVO.getValue() >= USONIC_SERVO.maxValue
+        return self.USONIC_SERVO.getValue() >= self.USONIC_SERVO.maxValue
 
     def isMin(self):
-        return USONIC_SERVO.getValue() <= USONIC_SERVO.minValue
+        return self.USONIC_SERVO.getValue() <= self.USONIC_SERVO.minValue
 
     def scanObjectDistance(self):
-        self.setPosition(USONIC_SERVO.minValue)
+        self.setPosition(self.USONIC_SERVO.minValue)
         objects: List[Object] = []
         while not self.isMax():
             self.move(step=4)
             distance = self.getDistance()
-            position = USONIC_SERVO.getValue()
+            position = self.USONIC_SERVO.getValue()
 
             existingObject = geObjectByDistance(objects, distance)
             if existingObject is not None:
@@ -48,6 +54,22 @@ class UltrasonicService(Service):
         objects.sort(key=lambda o: o.distance, reverse=False)
 
         return objects
+
+    def findClearDirection(self):
+        self.setPosition(0)
+        forward = self.getDistance()
+
+        self.setPosition(-1)
+        right = self.getDistance()
+
+        self.setPosition(1)
+        left = self.getDistance()
+
+        self.setPosition(0)
+
+        diections = [(0, forward), (-1, right), (1, left)]
+
+        return max(diections, key=lambda d: d[1])
 
 
 USONIC_SERVICE = UltrasonicService("USONIC_SERVICE")

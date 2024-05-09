@@ -1,6 +1,6 @@
 from threading import Thread
 from time import sleep
-from services.SharedData import getSharedData, saveSharedData
+from services.SharedData import getSharedData, setSharedData
 
 
 def startJobInLoop(job, jobName: str, delay: float = 0):
@@ -8,7 +8,7 @@ def startJobInLoop(job, jobName: str, delay: float = 0):
         print(jobName, "already running")
         return
 
-    saveSharedData(jobName, True)
+    setSharedData(jobName, True)
 
     def jobLoop():
         while getSharedData(key=jobName, maxRetry=0):
@@ -24,4 +24,4 @@ def startJobInLoop(job, jobName: str, delay: float = 0):
 
 
 def stopJobInLoop(jobName: str):
-    saveSharedData(jobName, False)
+    setSharedData(jobName, False)
