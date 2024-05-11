@@ -162,3 +162,4 @@ cython_debug/
 test
 trainer
 face_detection_model
+wattabot.ini

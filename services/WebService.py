@@ -33,7 +33,7 @@ class WebService(Service):
 
             frame = getSharedData("camera.frame")
             _, buffer = cv2.imencode(
-                ".jpeg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), 20]
+                ".jpeg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), 10]
             )
 
             yield (
