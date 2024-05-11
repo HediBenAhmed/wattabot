@@ -1,9 +1,7 @@
 import time
 
 import cv2
-import numpy as np
 from drivers.Camera import CAMERA_FPS
-from services.Command import Command
 from services.CameraService import CAMERA_SERVICE
 
 from services.CameraServoService import CAMERA_SERVO_SERVICE
@@ -104,4 +102,4 @@ class WebService(Service):
             CAMERA_SERVO_SERVICE.centralizeFace(faces[0])
 
 
-WEB_SERVICE = WebService("WEB_SERVICE")
+WEB_SERVICE = WebService()

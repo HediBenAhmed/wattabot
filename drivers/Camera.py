@@ -1,8 +1,6 @@
 from drivers.Device import Device
 import cv2
 from services.Configurations import cameraConfig
-from services.JobService import startJobInLoop
-from services.SharedData import setSharedData
 import numpy as np
 
 CAMERA_FPS = cameraConfig("FPS")
@@ -40,13 +38,6 @@ class Camera(Device):
 
     def setDefaultCameraConfigs(self):
         self.setCameraConfigs(CAMERA_WIDTH, CAMERA_HEIGHT)
-
-    def streamImages(self, output: str):
-        def job():
-            ref, frame = self.getImage()
-            setSharedData(output, frame)
-
-        return startJobInLoop(job=job, jobName="streamImages", delay=1 / CAMERA_FPS)
 
     def getWidth(self):
         return self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)

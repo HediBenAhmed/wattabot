@@ -1,14 +1,12 @@
 from time import sleep
 from drivers.Motor import Motor
 
-from services.Command import Command
 from services.Configurations import connectorConfig
 from services.Service import Service
 
 
 class MotorsService(Service):
-    def __init__(self, name: str):
-        super().__init__(name)
+    def __init__(self):
 
         self.MOTOR_L1 = Motor(
             connectorConfig("M2_IN1"),
@@ -95,17 +93,5 @@ class MotorsService(Service):
         sleep(delay)
         self.stop()
 
-    def executeCommand(self, command: Command):
-        if command.command == "forward":
-            self.forward()
-        elif command.command == "backward":
-            self.backward()
-        elif command.command == "left":
-            self.left()
-        elif command.command == "right":
-            self.right()
-        if command.command == "stop":
-            self.stop()
 
-
-MOTORS_SERVICE = MotorsService("MOTORS_SERVICE")
+MOTORS_SERVICE = MotorsService()

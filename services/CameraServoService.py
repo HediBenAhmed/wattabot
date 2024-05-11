@@ -1,7 +1,6 @@
 from drivers.Camera import CAMERA_HEIGHT, CAMERA_WIDTH
 from drivers.Servo import Servo
 
-from services.Command import Command
 from services.Configurations import connectorConfig
 from services.Face import Face
 from services.Service import Service
@@ -12,7 +11,6 @@ CENTER_MARGIN = (50, 50)
 
 class CameraServoService(Service):
     def __init__(self):
-        super().__init__("CAMERA_SERVO_SERVICE")
         self.moveCamera = False
         self.CAMERA_SERVO_H = Servo(connectorConfig("CAMERA_SERVO_H"))
         self.CAMERA_SERVO_V = Servo(connectorConfig("CAMERA_SERVO_V"), -0.5, 0.2)
@@ -82,14 +80,6 @@ class CameraServoService(Service):
             vdirection = 1
 
         return hdirection, vdirection
-
-    def executeCommand(self, command: Command):
-        if command.command == "setPosition":
-            self.setPosition(command.getParameter("x"), command.getParameter("y"))
-        elif command.command == "move":
-            self.move(command.getParameter("hStep"), command.getParameter("vStep"))
-        elif command.command == "centralizeFace":
-            self.centralizeFace(command.getParameter("face"))
 
 
 CAMERA_SERVO_SERVICE = CameraServoService()

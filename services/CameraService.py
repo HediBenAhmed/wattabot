@@ -1,17 +1,16 @@
 import pickle
 from typing import List
-from drivers.Camera import CAMERA_HEIGHT, CAMERA_WIDTH, Camera
+from drivers.Camera import CAMERA_FPS, CAMERA_HEIGHT, CAMERA_WIDTH, Camera
 import cv2
 import numpy as np
 from PIL import Image
 import os
 from sklearn.preprocessing import LabelEncoder
 from sklearn.svm import SVC
-from services.Command import Command
 from services.Face import Face
 from services.JobService import startJobInLoop, stopJobInLoop
 from services.Service import Service
-from services.SharedData import getSharedData, setSharedData, setSharedData
+from services.SharedData import setSharedData
 
 FACE_DETECTOR = cv2.CascadeClassifier(
     cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
@@ -40,14 +39,11 @@ CENTER_MARGIN = [50, 50]
 
 class CameraService(Service):
 
-    def __init__(self, name: str):
-        super().__init__(name)
+    def __init__(self):
         self.CAMERA = Camera(CAMERA_WIDTH, CAMERA_HEIGHT)
 
     def getImage(self, gamma=1.0):
         ret, frame = self.CAMERA.getImage(gamma)
-
-        setSharedData("CameraService.frame", frame)
         return ret, frame
 
     def scanFaces_haar(self, frame, identifyFace=True):
@@ -267,46 +263,21 @@ class CameraService(Service):
         f.write(pickle.dumps(le))
         f.close()
 
-    def imageStream(self, compression=20, gamma=1.0):
-        _, frame = self.getImage(gamma)
-        _, buffer = cv2.imencode(
-            ".jpeg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), compression]
-        )
-
-        return buffer.tobytes()
-
     def saveImage(self, frame, output):
         cv2.imwrite(output, frame)
 
-    def executeCommand(self, command: Command):
-        if command.command == "scanFaces":
-            self.scanFaces(command.getParameter("frame"))
-
-        if command.command == "getImage":
-            self.getImage(command.getParameter("gamma"))
-
-        if command.command == "streamImages":
-            self.streamImages()
-
     def startStreaming(self, output: str):
-        thread, threadName = self.CAMERA.streamImages(output)
+        def job():
+            ref, frame = self.getImage()
+            setSharedData(output, frame)
+
+        thread, threadName = startJobInLoop(
+            job=job, jobName="streamImages", delay=1 / CAMERA_FPS
+        )
         self.streamImagesThreadName = threadName
 
     def stopStreaming(self):
         stopJobInLoop(self.streamImagesThreadName)
-
-    def startScanFaces(self, input: str, output: str):
-
-        def job():
-            frame = getSharedData(input)
-            faces: List[Face] = self.scanFaces(frame)
-            setSharedData(output, faces)
-
-        thread, threadName = startJobInLoop(job=job, jobName="scanFaces", delay=1)
-        self.scanFacesThreadName = threadName
-
-    def stopScanFaces(self):
-        stopJobInLoop(self.scanFacesThreadName)
 
     def setMaxResolution(self):
         self.CAMERA.setCameraConfigs(1280, 720)
@@ -325,4 +296,4 @@ class CameraService(Service):
         return None
 
 
-CAMERA_SERVICE = CameraService("CAMERA_SERVICE")
+CAMERA_SERVICE = CameraService()

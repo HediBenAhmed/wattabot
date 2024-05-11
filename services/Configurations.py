@@ -10,3 +10,7 @@ def connectorConfig(name: str):
 
 def cameraConfig(name: str):
     return int(CONFIGURATIONS["CAMERA"][name])
+
+
+def secretConfig(name: str):
+    return CONFIGURATIONS["SECRET"][name]

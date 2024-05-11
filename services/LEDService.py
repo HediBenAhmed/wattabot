@@ -1,4 +1,4 @@
-from drivers.LED import LED_SCREEN, matrix_hedi, matrix_forward, off
+from drivers.LED import *
 from services.Service import Service
 
 
@@ -11,4 +11,4 @@ class LEDService(Service):
         LED_SCREEN.matrix_display(off)
 
 
-LED_SERVICE = LEDService("LED_SERVICE")
+LED_SERVICE = LEDService()

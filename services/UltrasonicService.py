@@ -11,8 +11,7 @@ MAX_DISTANCE = 10000
 
 class UltrasonicService(Service):
 
-    def __init__(self, name: str):
-        super().__init__(name)
+    def __init__(self):
         self.USONIC_SERVO = Servo(connectorConfig("USONIC_SERVO"))
 
     def getDistance(self, ndigits=0):
@@ -72,4 +71,4 @@ class UltrasonicService(Service):
         return max(diections, key=lambda d: d[1])
 
 
-USONIC_SERVICE = UltrasonicService("USONIC_SERVICE")
+USONIC_SERVICE = UltrasonicService()
