@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="{{url_for('static', filename='jquery-3.7.1.min.js')}}"></script>
-<script src="{{url_for('static', filename='js.js')}}"></script>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Robot Move Control with Camera</title>
@@ -55,35 +52,15 @@
     </div>
     
 	<div class="grid-container">
-	<div class="left">
-		Camera
-		<div>
-			<button class="btn" id="cupBtn" onclick="execPythonCommand('cam_up')">Up</button>
+		<div class="left">
+			Camera
+			<div id="joyCamera"></div>
 		</div>
-		<div>
-			<button class="btn" id="cleftBtn" onclick="execPythonCommand('cam_left')">Left</button>
-			<button class="btn" id="cstopBtn" onclick="execPythonCommand('cam_save')">Save</button>
-			<button class="btn" id="crightBtn" onclick="execPythonCommand('cam_right')">Right</button>
+		
+		<div class="right">
+			Motor
+			<div id="joyMotor"></div>
 		</div>
-		<div>
-			<button class="btn" id="cdownBtn" onclick="execPythonCommand('cam_down')">Down</button>
-		</div>
-	</div>
-	
-	<div class="right">
-		Motor
-		<div>
-			<button class="btn" id="mforwardBtn" onmousedown="execPythonCommand('motor_forward')" onmouseup="execPythonCommand('motor_stop')">Forward</button>
-		</div>
-		<div>
-			<button class="btn" id="mleftBtn"  onmousedown="execPythonCommand('motor_left')" onmouseup="execPythonCommand('motor_stop')">Left</button>
-			<button class="btn" id="mstopBtn"  onclick="execPythonCommand('motor_stop')">Stop</button>
-			<button class="btn" id="mrightBtn"  onmousedown="execPythonCommand('motor_right')" onmouseup="execPythonCommand('motor_stop')">Right</button>
-		</div>
-		<div>
-			<button class="btn" id="mbackwardBtn" onmousedown="execPythonCommand('motor_backwoard')" onmouseup="execPythonCommand('motor_stop')">Backward</button>
-		</div>
-	</div>
 	</div>
     <div id="output"></div>
 </div>
@@ -92,4 +69,8 @@
 </script>
 
 </body>
+<script src="{{url_for('static', filename='joy.min.js')}}"></script>
+<script src="{{url_for('static', filename='jquery-3.7.1.min.js')}}"></script>
+<script src="{{url_for('static', filename='js.js')}}"></script>
+
 </html>

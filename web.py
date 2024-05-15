@@ -82,74 +82,126 @@ def cam_centralize_faces():
     return ""
 
 
-@app.route("/cam_up")
+@app.route("/CAM_N")
 @login_required
 def cam_up():
     WEB_SERVICE.camUp()
     return ""
 
 
-@app.route("/cam_down")
+@app.route("/CAM_S")
 @login_required
 def cam_down():
     WEB_SERVICE.camDown()
     return ""
 
 
-@app.route("/cam_left")
+@app.route("/CAM_W")
 @login_required
 def cam_left():
     WEB_SERVICE.camLeft()
     return ""
 
 
-@app.route("/cam_right")
+@app.route("/CAM_E")
 @login_required
 def cam_right():
     WEB_SERVICE.camRight()
     return ""
 
 
-@app.route("/cam_save")
+@app.route("/CAM_NE")
+@login_required
+def cam_up_right():
+    return ""
+
+
+@app.route("/CAM_NW")
+@login_required
+def cam_up_left():
+    return ""
+
+
+@app.route("/CAM_SW")
+@login_required
+def cam_down_left():
+    return ""
+
+
+@app.route("/CAM_SE")
+@login_required
+def cam_down_right():
+    return ""
+
+
+@app.route("/CAM_SAVE")
 @login_required
 def cam_save():
     return ""
 
 
-@app.route("/motor_forward")
+@app.route("/MOTOR_N")
 @login_required
 def motor_forward():
     WEB_SERVICE.motorForward()
     return ""
 
 
-@app.route("/motor_backwoard")
+@app.route("/MOTOR_S")
 @login_required
 def motor_backwoard():
     WEB_SERVICE.motorBackwoard()
     return ""
 
 
-@app.route("/motor_left")
+@app.route("/MOTOR_W")
 @login_required
 def motor_left():
     WEB_SERVICE.motorLeft()
     return ""
 
 
-@app.route("/motor_right")
+@app.route("/MOTOR_E")
 @login_required
 def motor_right():
     WEB_SERVICE.motorRight()
     return ""
 
 
-@app.route("/motor_stop")
+@app.route("/MOTOR_NE")
+@login_required
+def motor_forward_right():
+    return ""
+
+
+@app.route("/MOTOR_NW")
+@login_required
+def motor_forward_left():
+    return ""
+
+
+@app.route("/MOTOR_SW")
+@login_required
+def motor_backwoard_left():
+    return ""
+
+
+@app.route("/MOTOR_SE")
+@login_required
+def motor_backwoard_right():
+    return ""
+
+
+@app.route("/MOTOR_C")
 @login_required
 def motor_stop():
     WEB_SERVICE.motorStop()
     return ""
 
 
+def startServer():
+    serve(app, host="0.0.0.0", port=8181)
+
+
 if __name__ == "__main__":
-    serve(app, host="0.0.0.0", port=80)
+    startServer()

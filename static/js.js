@@ -14,46 +14,20 @@ function execPythonCommand(pythonCommand){
 }
 
 
-const clickAndHold = (btnEl) => {
-    let timerId;
-    const DURATION = 50;
 
-    //handle when clicking down
-    const onMouseDown = () => {
-      timerId = setInterval(() => {
-        btnEl && btnEl.click();
-      }, DURATION);
-    };
+const joyCamera = new JoyStick('joyCamera', {"title": "Camera", "width": 300, "height": 300});
+setInterval(function(){
+	if(joyCamera.GetDir() !== 'C'){
+		console.log("CAM", joyCamera.GetDir())
+    execPythonCommand("CAM_" + joyCamera.GetDir())
+	}
+}, 50);
 
-    //stop or clear interval
-    const clearTimer = () => {
-      timerId && clearInterval(timerId);
-    };
-
-    //handle when mouse is clicked
-    btnEl.addEventListener("mousedown", onMouseDown);
-    //handle when mouse is raised
-    btnEl.addEventListener("mouseup", clearTimer);
-    //handle mouse leaving the clicked button
-    btnEl.addEventListener("mouseout", clearTimer);
-
-    // a callback function to remove listeners useful in libs like react
-    // when component or element is unmounted
-    return () => {
-      btnEl.removeEventListener("mousedown", onMouseDown);
-      btnEl.removeEventListener("mouseup", clearTimer);
-      btnEl.removeEventListener("mouseout", clearTimer);
-    };
-  };
-
-  //onMount
-  document.addEventListener("DOMContentLoaded", function () {
-    let camUp = document.getElementById("cupBtn");
-    let camDwn = document.getElementById("cdownBtn");
-    let camLeft = document.getElementById("cleftBtn");
-    let camRight = document.getElementById("crightBtn");
-    clickAndHold(camUp);
-    clickAndHold(camDwn);
-    clickAndHold(camLeft);
-    clickAndHold(camRight);
-  });
+let motorDirection = 'C';
+const joyMotor = new JoyStick('joyMotor', {"title": "Motor", "width": 300, "height": 300}, function(stickData) {
+	if(motorDirection !== stickData.cardinalDirection){
+		console.log("MOTOR_", stickData.cardinalDirection)
+		motorDirection = stickData.cardinalDirection;
+    execPythonCommand("MOTOR_" + motorDirection)
+	}
+});

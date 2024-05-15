@@ -25,3 +25,16 @@ def startJobInLoop(job, jobName: str, delay: float = 0):
 
 def stopJobInLoop(jobName: str):
     setSharedData(jobName, False)
+
+
+def startJob(job, jobName: str):
+    if getSharedData(key=jobName, maxRetry=0):
+        print(jobName, "already running")
+        return
+
+    setSharedData(jobName, True)
+
+    print("START JOB", jobName)
+    service = Thread(target=job, args=(), name=jobName)
+    service.start()
+    return service, jobName
