@@ -160,9 +160,10 @@ class CameraService(Service):
         similarity, name = self.whoIsIt(vec, database)
         confidence = round(100 - similarity * 100)
 
-        face.identified = name is not None
-        face.name = name
-        face.confidence = confidence
+        face.identified = name is not None and confidence > 50
+        if face.identified:
+            face.name = name
+            face.confidence = confidence
 
         return face
 
@@ -295,5 +296,6 @@ class CameraService(Service):
 
         return None
 
-
-CAMERA_SERVICE = CameraService()
+    @classmethod
+    def createInstance(self):
+        return CameraService()

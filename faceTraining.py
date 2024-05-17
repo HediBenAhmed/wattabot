@@ -2,16 +2,19 @@ import os
 from time import sleep
 from typing import List
 from drivers.Camera import CAMERA_FPS
-from services.CameraService import CAMERA_SERVICE
-from services.CameraServoService import CAMERA_SERVO_SERVICE
+from services.CameraService import CameraService
+from services.CameraServoService import CameraServoService
 from services.Face import Face
-from services.LEDService import LED_SERVICE
+from services.LEDService import LEDService
 from drivers.LED import one, two, three, four, five, matrix_allow, matrix_deny
 import fnmatch
 
 path = "/home/hedi/wattabot/trainer"
 name = "hedi"
 gamma = 1
+
+CAMERA_SERVICE: CameraService = CameraService.getInsance()
+CAMERA_SERVO_SERVICE: CameraServoService = CameraServoService.getInsance()
 
 
 def countTrainImages(dataPath):
@@ -88,6 +91,7 @@ def testModel():
 
 
 def fraceTraining():
+    LED_SERVICE: LEDService = LEDService.getInsance()
     try:
         LED_SERVICE.clear()
         CAMERA_SERVICE.setDefaultCameraConfigs()

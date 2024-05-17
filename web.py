@@ -11,8 +11,8 @@ from flask import (
 from flask_login import LoginManager, login_user, login_required
 from waitress import serve
 from services.Configurations import secretConfig
-from services.PrivateApiService import PRIVATE_API_SERVICE
-from services.WebService import WEB_SERVICE
+from services.PrivateApiService import PrivateApiService
+from services.WebService import WebService
 
 
 app = Flask(
@@ -28,7 +28,7 @@ app.config["SECRET_KEY"] = secretConfig("WEB_SECRET_KEY")
 
 @login_manager.user_loader
 def load_user(id):
-    return PRIVATE_API_SERVICE.getUser(id)
+    return PrivateApiService.getInsance().getUser(id)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -37,7 +37,7 @@ def login():
         username = request.form.get("username", None)
         password = request.form.get("password", None)
 
-        user = PRIVATE_API_SERVICE.login(username, password)
+        user = PrivateApiService.getInsance().login(username, password)
 
         if user is not None:
             login_user(user)
@@ -59,14 +59,15 @@ def camera():
 @login_required
 def video_feed():
     return Response(
-        WEB_SERVICE.videoStream(), mimetype="multipart/x-mixed-replace; boundary=frame"
+        WebService.getInsance().videoStream(),
+        mimetype="multipart/x-mixed-replace; boundary=frame",
     )
 
 
 @app.route("/identify_faces")
 @login_required
 def identify_faces():
-    face = WEB_SERVICE.identifyFace()
+    face = WebService.getInsance().identifyFace()
 
     result = None
     if face is not None:
@@ -78,35 +79,35 @@ def identify_faces():
 @app.route("/cam_centralize_faces")
 @login_required
 def cam_centralize_faces():
-    WEB_SERVICE.switchCamCentralizeFaces()
+    WebService.getInsance().switchCamCentralizeFaces()
     return ""
 
 
 @app.route("/CAM_N")
 @login_required
 def cam_up():
-    WEB_SERVICE.camUp()
+    WebService.getInsance().camUp()
     return ""
 
 
 @app.route("/CAM_S")
 @login_required
 def cam_down():
-    WEB_SERVICE.camDown()
+    WebService.getInsance().camDown()
     return ""
 
 
 @app.route("/CAM_W")
 @login_required
 def cam_left():
-    WEB_SERVICE.camLeft()
+    WebService.getInsance().camLeft()
     return ""
 
 
 @app.route("/CAM_E")
 @login_required
 def cam_right():
-    WEB_SERVICE.camRight()
+    WebService.getInsance().camRight()
     return ""
 
 
@@ -143,28 +144,28 @@ def cam_save():
 @app.route("/MOTOR_N")
 @login_required
 def motor_forward():
-    WEB_SERVICE.motorForward()
+    WebService.getInsance().motorForward()
     return ""
 
 
 @app.route("/MOTOR_S")
 @login_required
 def motor_backwoard():
-    WEB_SERVICE.motorBackwoard()
+    WebService.getInsance().motorBackwoard()
     return ""
 
 
 @app.route("/MOTOR_W")
 @login_required
 def motor_left():
-    WEB_SERVICE.motorLeft()
+    WebService.getInsance().motorLeft()
     return ""
 
 
 @app.route("/MOTOR_E")
 @login_required
 def motor_right():
-    WEB_SERVICE.motorRight()
+    WebService.getInsance().motorRight()
     return ""
 
 
@@ -195,12 +196,12 @@ def motor_backwoard_right():
 @app.route("/MOTOR_C")
 @login_required
 def motor_stop():
-    WEB_SERVICE.motorStop()
+    WebService.getInsance().motorStop()
     return ""
 
 
 def startServer():
-    serve(app, host="0.0.0.0", port=8181)
+    serve(app, host="0.0.0.0", port=8181, threads=100)
 
 
 if __name__ == "__main__":

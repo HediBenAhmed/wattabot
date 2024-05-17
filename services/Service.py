@@ -1,15 +1,16 @@
-import threading
-from typing import List
+from __future__ import annotations
+from typing_extensions import Self
 
 
 class Service:
-    def executeSubTasks(self, functions: List[tuple]):
+    __instance: Self = None
 
-        threads = []
-        for function in functions:
-            threads.append(threading.Thread(target=function[0], args=function[1]))
+    @classmethod
+    def getInsance(self):
+        if self.__instance == None:
+            self.__instance = self.createInstance()
+        return self.__instance
 
-        for thread in threads:
-            thread.start()
-        for thread in threads:
-            thread.join()
+    @classmethod
+    def createInstance(self):
+        pass

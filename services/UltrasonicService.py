@@ -19,7 +19,7 @@ class UltrasonicService(Service):
         for i in range(0, 10):
             d = USONIC.getDistance()
             min = d if d < min else min
-            sleep(0.01)
+            sleep(0.005)
 
         min = round(min, ndigits)
         return min
@@ -70,5 +70,6 @@ class UltrasonicService(Service):
 
         return max(diections, key=lambda d: d[1])
 
-
-USONIC_SERVICE = UltrasonicService()
+    @classmethod
+    def createInstance(self):
+        return UltrasonicService()

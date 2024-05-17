@@ -10,5 +10,6 @@ class LEDService(Service):
     def clear(self):
         LED_SCREEN.matrix_display(off)
 
-
-LED_SERVICE = LEDService()
+    @classmethod
+    def createInstance(self):
+        return LEDService()

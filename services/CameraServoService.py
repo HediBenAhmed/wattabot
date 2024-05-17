@@ -3,6 +3,7 @@ from drivers.Servo import Servo
 
 from services.Configurations import connectorConfig
 from services.Face import Face
+from services.JobService import executeTasks
 from services.Service import Service
 
 CENTER_OF_CAMERA = (CAMERA_WIDTH / 2, CAMERA_HEIGHT / 2)
@@ -35,7 +36,7 @@ class CameraServoService(Service):
             (self.CAMERA_SERVO_V.setValue, (y,)),
         ]
 
-        self.executeSubTasks(commands)
+        executeTasks(commands)
 
         self.moveCamera = False
 
@@ -47,7 +48,7 @@ class CameraServoService(Service):
             (self.CAMERA_SERVO_V.move, (vStep / 100,)),
         ]
 
-        self.executeSubTasks(commands)
+        executeTasks(commands)
 
         self.moveCamera = False
 
@@ -81,5 +82,6 @@ class CameraServoService(Service):
 
         return hdirection, vdirection
 
-
-CAMERA_SERVO_SERVICE = CameraServoService()
+    @classmethod
+    def createInstance(self):
+        return CameraServoService()

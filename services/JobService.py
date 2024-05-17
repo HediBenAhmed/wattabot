@@ -1,5 +1,6 @@
 from threading import Thread
 from time import sleep
+from typing import List
 from services.SharedData import getSharedData, setSharedData
 
 
@@ -38,3 +39,15 @@ def startJob(job, jobName: str):
     service = Thread(target=job, args=(), name=jobName)
     service.start()
     return service, jobName
+
+
+def executeTasks(functions: List[tuple]):
+
+    threads = []
+    for function in functions:
+        threads.append(Thread(target=function[0], args=function[1]))
+
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()

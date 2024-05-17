@@ -24,5 +24,6 @@ class OLEDService(Service):
             ["IP: " + str(IP), str(CPU), str(CPUT), str(MemUsage), str(Disk)]
         )
 
-
-OLED_SERVICE = OLEDService()
+    @classmethod
+    def createInstance(self):
+        return OLEDService()

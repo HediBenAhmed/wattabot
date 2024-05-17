@@ -2,7 +2,10 @@ from time import sleep
 from drivers.Motor import Motor
 
 from services.Configurations import connectorConfig
+from services.JobService import executeTasks
 from services.Service import Service
+
+OBSTACLE_DISTANCE_LIMIT = 10
 
 
 class MotorsService(Service):
@@ -37,7 +40,7 @@ class MotorsService(Service):
             (self.MOTOR_R2.goForward, ()),
         ]
 
-        self.executeSubTasks(commands)
+        executeTasks(commands)
 
     def backward(self):
         commands = [
@@ -47,7 +50,7 @@ class MotorsService(Service):
             (self.MOTOR_R2.goBackward, ()),
         ]
 
-        self.executeSubTasks(commands)
+        executeTasks(commands)
 
     def right(self):
         commands = [
@@ -57,7 +60,7 @@ class MotorsService(Service):
             (self.MOTOR_R2.goBackward, ()),
         ]
 
-        self.executeSubTasks(commands)
+        executeTasks(commands)
 
     def left(self):
         commands = [
@@ -67,7 +70,7 @@ class MotorsService(Service):
             (self.MOTOR_R2.goForward, ()),
         ]
 
-        self.executeSubTasks(commands)
+        executeTasks(commands)
 
     def stop(self):
         commands = [
@@ -77,7 +80,7 @@ class MotorsService(Service):
             (self.MOTOR_R2.stop, ()),
         ]
 
-        self.executeSubTasks(commands)
+        executeTasks(commands)
 
     def setPosition(self, position):  # from -1 (0) to 1 (180), move 90° = 1 sec
         if position == 0:
@@ -93,5 +96,6 @@ class MotorsService(Service):
         sleep(delay)
         self.stop()
 
-
-MOTORS_SERVICE = MotorsService()
+    @classmethod
+    def createInstance(self):
+        return MotorsService()

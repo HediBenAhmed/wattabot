@@ -14,7 +14,7 @@ class PrivateApiService(Service):
 
         if response.status_code == 200:
             user = response.json()
-            return User(id=user["id"], username=user["username"])
+            return User(user)
 
         else:
             return None
@@ -24,10 +24,25 @@ class PrivateApiService(Service):
 
         if response.status_code == 200:
             user = response.json()
-            return User(id=user["id"], username=user["username"])
+            return User(user)
 
         else:
             return None
 
+    def getUserByName(self, username):
+        response = requests.post(
+            url="http://localhost:8080/users/search",
+            json={"username": username},
+        )
+        print("getUserByName", response.status_code, response.json())
 
-PRIVATE_API_SERVICE = PrivateApiService()
+        if response.status_code == 200:
+            user = response.json()
+            return User(user)
+
+        else:
+            return None
+
+    @classmethod
+    def createInstance(self):
+        return PrivateApiService()

@@ -1,8 +1,11 @@
 from time import sleep
-from services.MotorsService import MOTORS_SERVICE
-from services.UltrasonicService import USONIC_SERVICE
+from services.MotorsService import MotorsService
+from services.UltrasonicService import UltrasonicService
 
 LIMIT = 10
+
+MOTORS_SERVICE: MotorsService = MotorsService.getInsance()
+USONIC_SERVICE: UltrasonicService = UltrasonicService.getInsance()
 
 
 def moveTo(direction: float):
