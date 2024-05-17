@@ -72,16 +72,28 @@ class WebService(Service):
             stopJobInLoop("centralizeFace")
 
     def camUp(self):
-        self.CAMERA_SERVO_SERVICE.move(hStep=0, vStep=-1)
+        self.CAMERA_SERVO_SERVICE.move(hStep=0, vStep=-2)
 
     def camDown(self):
-        self.CAMERA_SERVO_SERVICE.move(hStep=0, vStep=1)
+        self.CAMERA_SERVO_SERVICE.move(hStep=0, vStep=2)
 
     def camLeft(self):
-        self.CAMERA_SERVO_SERVICE.move(hStep=-1, vStep=0)
+        self.CAMERA_SERVO_SERVICE.move(hStep=-2, vStep=0)
 
     def camRight(self):
-        self.CAMERA_SERVO_SERVICE.move(hStep=1, vStep=0)
+        self.CAMERA_SERVO_SERVICE.move(hStep=2, vStep=0)
+
+    def camUpLeft(self):
+        self.CAMERA_SERVO_SERVICE.move(hStep=-2, vStep=-2)
+
+    def camUpRight(self):
+        self.CAMERA_SERVO_SERVICE.move(hStep=2, vStep=-2)
+
+    def camDownRight(self):
+        self.CAMERA_SERVO_SERVICE.move(hStep=2, vStep=2)
+
+    def camDownLeft(self):
+        self.CAMERA_SERVO_SERVICE.move(hStep=-2, vStep=2)
 
     def motorForward(self):
         self.MOTORS_SERVICE.forward()

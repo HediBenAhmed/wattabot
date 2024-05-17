@@ -21,7 +21,7 @@ setInterval(function(){
 		console.log("CAM", joyCamera.GetDir())
     execPythonCommand("CAM_" + joyCamera.GetDir())
 	}
-}, 50);
+}, 100);
 
 let motorDirection = 'C';
 const joyMotor = new JoyStick('joyMotor', {"title": "Motor", "width": 300, "height": 300}, function(stickData) {

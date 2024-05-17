@@ -22,11 +22,13 @@ Si_h = 988
 
 class Buzzer(Device):
     def __init__(self):
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setwarnings(False)
         pin = connectorConfig("BUZZER")
         GPIO.setup(pin, GPIO.OUT)
         self.buzz = GPIO.PWM(pin, 440)
 
-    def beep(self, frequency: float, delay: float):
+    def beep(self, frequency: float, delay: float = 1):
         self.buzz.start(50)
         self.buzz.ChangeFrequency(frequency)  # Change the frequency along the song note
         time.sleep(delay)  # delay a note for beat

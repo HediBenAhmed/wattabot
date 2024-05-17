@@ -18,17 +18,17 @@ class Motor(Device):
         self.in2 = in2
         self.pwm = GPIO.PWM(pwm, 100)
 
-    def goForward(self):
+    def goForward(self, speed=30):
         self.pwm.start(0)
         GPIO.output(self.in2, GPIO.LOW)
         GPIO.output(self.in1, GPIO.HIGH)
-        self.pwm.ChangeDutyCycle(50)
+        self.pwm.ChangeDutyCycle(speed)
 
-    def goBackward(self):
+    def goBackward(self, speed=30):
         self.pwm.start(0)
         GPIO.output(self.in2, GPIO.HIGH)
         GPIO.output(self.in1, GPIO.LOW)
-        self.pwm.ChangeDutyCycle(50)
+        self.pwm.ChangeDutyCycle(speed)
 
     def stop(self):
         self.pwm.stop()

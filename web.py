@@ -100,38 +100,42 @@ def cam_down():
 @app.route("/CAM_W")
 @login_required
 def cam_left():
-    WebService.getInsance().camLeft()
+    WebService.getInsance().camRight()
     return ""
 
 
 @app.route("/CAM_E")
 @login_required
 def cam_right():
-    WebService.getInsance().camRight()
+    WebService.getInsance().camLeft()
     return ""
 
 
 @app.route("/CAM_NE")
 @login_required
-def cam_up_right():
+def cam_up_left():
+    WebService.getInsance().camUpLeft()
     return ""
 
 
 @app.route("/CAM_NW")
 @login_required
-def cam_up_left():
+def cam_up_right():
+    WebService.getInsance().camUpRight()
     return ""
 
 
 @app.route("/CAM_SW")
 @login_required
-def cam_down_left():
+def cam_down_right():
+    WebService.getInsance().camDownRight()
     return ""
 
 
 @app.route("/CAM_SE")
 @login_required
-def cam_down_right():
+def cam_down_left():
+    WebService.getInsance().camDownLeft()
     return ""
 
 
