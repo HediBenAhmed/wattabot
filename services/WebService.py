@@ -1,3 +1,4 @@
+from multiprocessing import Manager, Queue
 import time
 
 import cv2
@@ -5,10 +6,13 @@ from drivers.Camera import CAMERA_FPS
 from services.CameraService import CameraService
 
 from services.CameraServoService import CameraServoService
-from services.JobService import startJobInLoop, stopJobInLoop
+from services.JobService import (
+    startJobInLoop,
+    stopJobInLoop,
+    getSharedData,
+)
 from services.MotorsService import MotorsService
 from services.Service import Service
-from services.SharedData import getSharedData
 
 
 class WebParameters:
@@ -23,8 +27,9 @@ WEB_PARAMETERS = WebParameters()
 
 class WebService(Service):
     def __init__(self):
+        self.SHARED_DICT = Manager().dict()
         self.CAMERA_SERVICE: CameraService = CameraService.getInsance()
-        self.CAMERA_SERVICE.startStreaming("camera.frame")
+        self.CAMERA_SERVICE.startStreaming("camera.frame", self.SHARED_DICT)
 
         self.CAMERA_SERVO_SERVICE: CameraServoService = CameraServoService.getInsance()
         self.MOTORS_SERVICE: MotorsService = MotorsService.getInsance()
@@ -33,7 +38,7 @@ class WebService(Service):
         while True:
             time.sleep(1 / CAMERA_FPS)
 
-            frame = getSharedData("camera.frame")
+            frame = getSharedData("camera.frame", self.SHARED_DICT)
             _, buffer = cv2.imencode(
                 ".jpeg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), 50]
             )
@@ -51,7 +56,7 @@ class WebService(Service):
             retry += 1
             time.sleep(1 / CAMERA_FPS)
 
-            frame = getSharedData("camera.frame")
+            frame = getSharedData("camera.frame", self.SHARED_DICT)
             faces = self.CAMERA_SERVICE.scanFaces_dnn(frame)
             faces = self.CAMERA_SERVICE.identifyFaces_dnn(faces)
 
@@ -67,9 +72,11 @@ class WebService(Service):
         WEB_PARAMETERS.enable_center = not WEB_PARAMETERS.enable_center
 
         if WEB_PARAMETERS.enable_center:
-            startJobInLoop(self.centralizeFace, "centralizeFace", 1 / CAMERA_FPS)
+            startJobInLoop(
+                self.centralizeFace, "centralizeFace", self.SHARED_DICT, 1 / CAMERA_FPS
+            )
         else:
-            stopJobInLoop("centralizeFace")
+            stopJobInLoop("centralizeFace", self.SHARED_DICT)
 
     def camUp(self):
         self.CAMERA_SERVO_SERVICE.move(hStep=0, vStep=-2)
@@ -111,7 +118,7 @@ class WebService(Service):
         self.MOTORS_SERVICE.stop()
 
     def centralizeFace(self):
-        frame = getSharedData("camera.frame")
+        frame = getSharedData("camera.frame", self.SHARED_DICT)
         faces = self.CAMERA_SERVICE.scanFaces_dnn(frame)
 
         if len(faces) > 0:

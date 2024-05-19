@@ -10,7 +10,9 @@ from flask import (
 )
 from flask_login import LoginManager, login_user, login_required
 from waitress import serve
+from feature.Feature import Feature
 from services.Configurations import secretConfig
+from services.JobService import startProcess, stopProcess
 from services.PrivateApiService import PrivateApiService
 from services.WebService import WebService
 
@@ -210,3 +212,13 @@ def startServer():
 
 if __name__ == "__main__":
     startServer()
+
+
+class WebControl(Feature):
+
+    def start(self, sharedDict):
+        process, _ = startProcess(startServer, "webControl", sharedDict)
+        self.process = process
+
+    def stop(self, sharedDict):
+        stopProcess(self.process, "webControl", sharedDict)

@@ -1,18 +1,18 @@
+from multiprocessing import Process
 from threading import Thread
 from time import sleep
 from typing import List
-from services.SharedData import getSharedData, setSharedData
 
 
-def startJobInLoop(job, jobName: str, delay: float = 0):
-    if getSharedData(key=jobName, maxRetry=0):
+def startJobInLoop(job, jobName: str, sharedDict, delay: float = 0):
+    if getSharedData(key=jobName, sharedDict=sharedDict, maxRetry=0):
         print(jobName, "already running")
         return
 
-    setSharedData(jobName, True)
+    setSharedData(jobName, True, sharedDict)
 
     def jobLoop():
-        while getSharedData(key=jobName, maxRetry=0):
+        while getSharedData(key=jobName, maxRetry=0, sharedDict=sharedDict):
             job()
             sleep(delay)
 
@@ -24,21 +24,27 @@ def startJobInLoop(job, jobName: str, delay: float = 0):
     return service, jobName
 
 
-def stopJobInLoop(jobName: str):
-    setSharedData(jobName, False)
+def stopJobInLoop(jobName: str, sharedDict):
+    setSharedData(jobName, False, sharedDict)
 
 
-def startJob(job, jobName: str):
-    if getSharedData(key=jobName, maxRetry=0):
+def startProcess(job, jobName: str, sharedDict):
+    if getSharedData(key=jobName, sharedDict=sharedDict, maxRetry=0):
         print(jobName, "already running")
         return
 
-    setSharedData(jobName, True)
+    setSharedData(jobName, True, sharedDict)
 
-    print("START JOB", jobName)
-    service = Thread(target=job, args=(), name=jobName)
+    print("START FEATURE", jobName)
+    service = Process(target=job, args=(), name=jobName)
     service.start()
     return service, jobName
+
+
+def stopProcess(job: Process, jobName: str, sharedDict):
+    print("END FEATURE", jobName)
+    job.kill()
+    setSharedData(jobName, False, sharedDict)
 
 
 def executeTasks(functions: List[tuple]):
@@ -51,3 +57,19 @@ def executeTasks(functions: List[tuple]):
         thread.start()
     for thread in threads:
         thread.join()
+
+
+def setSharedData(key: str, value, sharedDict):
+    sharedDict[key] = value
+
+
+def getSharedData(key: str, sharedDict, maxRetry=20, retry=0):
+    if key in sharedDict:
+        return sharedDict[key]
+
+    elif retry < maxRetry:
+        sleep(0.1)
+        print(key, "no value, retry", retry + 1)
+        return getSharedData(key, sharedDict, maxRetry, retry + 1)
+
+    return None

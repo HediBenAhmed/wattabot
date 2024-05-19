@@ -1,30 +1,23 @@
-from identification import identification
-from services.JobService import startJob, startJobInLoop
-from services.OLEDService import OLEDService
+from multiprocessing import Manager
+from feature.SystemInfo import SystemInfo
+from services.IdentificationService import IdentificationService
 from services.User import User
-from web import startServer
+from feature.WebControl import WebControl
 
 
-def webControl():
-    return startJob(startServer, "webserver")
-
-
-def systemInfo():
-    return startJobInLoop(
-        OLEDService.getInsance().displaySystemInfo, "displaySystemInfo", 2
-    )
+FEATURES = {"systemInfo": SystemInfo(), "webControl": WebControl()}
+SHARED_DICT = Manager().dict()
 
 
 def startModules(features):
-    if features["webControl"]:
-        webControl()
 
-    if features["systemInfo"]:
-        systemInfo()
+    for feature, enabled in features.items():
+        if enabled:
+            FEATURES[feature].start(SHARED_DICT)
 
 
 if __name__ == "__main__":
-    user: User = identification()
 
+    user: User = IdentificationService.getInsance().identification()
     if user is not None:
         startModules(user.userSettings["features"])

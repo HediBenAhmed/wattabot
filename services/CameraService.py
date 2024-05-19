@@ -8,9 +8,8 @@ import os
 from sklearn.preprocessing import LabelEncoder
 from sklearn.svm import SVC
 from services.Face import Face
-from services.JobService import startJobInLoop, stopJobInLoop
+from services.JobService import startJobInLoop, stopJobInLoop, setSharedData
 from services.Service import Service
-from services.SharedData import setSharedData
 
 FACE_DETECTOR = cv2.CascadeClassifier(
     cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
@@ -267,13 +266,13 @@ class CameraService(Service):
     def saveImage(self, frame, output):
         cv2.imwrite(output, frame)
 
-    def startStreaming(self, output: str):
+    def startStreaming(self, output: str, sharedDict):
         def job():
             ref, frame = self.getImage()
-            setSharedData(output, frame)
+            setSharedData(output, frame, sharedDict)
 
         thread, threadName = startJobInLoop(
-            job=job, jobName="streamImages", delay=1 / CAMERA_FPS
+            job=job, jobName="streamImages", sharedDict=sharedDict, delay=1 / CAMERA_FPS
         )
         self.streamImagesThreadName = threadName
 
