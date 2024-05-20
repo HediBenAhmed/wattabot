@@ -7,7 +7,7 @@ from typing import List
 def startJobInLoop(job, jobName: str, sharedDict, delay: float = 0):
     if getSharedData(key=jobName, sharedDict=sharedDict, maxRetry=0):
         print(jobName, "already running")
-        return
+        return None, None
 
     setSharedData(jobName, True, sharedDict)
 
@@ -31,7 +31,7 @@ def stopJobInLoop(jobName: str, sharedDict):
 def startProcess(job, jobName: str, sharedDict):
     if getSharedData(key=jobName, sharedDict=sharedDict, maxRetry=0):
         print(jobName, "already running")
-        return
+        return None, None
 
     setSharedData(jobName, True, sharedDict)
 

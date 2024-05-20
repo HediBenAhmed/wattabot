@@ -218,7 +218,8 @@ class WebControl(Feature):
 
     def start(self, sharedDict):
         process, _ = startProcess(startServer, "webControl", sharedDict)
-        self.process = process
+        if process is not None:
+            self.process = process
 
     def stop(self, sharedDict):
         stopProcess(self.process, "webControl", sharedDict)

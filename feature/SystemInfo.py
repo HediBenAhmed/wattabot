@@ -19,7 +19,8 @@ class SystemInfo(Feature):
             "displaySystemInfo",
             sharedDict,
         )
-        self.process = process
+        if process is not None:
+            self.process = process
 
     def stop(self, sharedDict):
         stopProcess(self.process, "displaySystemInfo", sharedDict)

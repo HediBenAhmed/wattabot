@@ -1,18 +1,15 @@
-from drivers.IrReceiver import *
+from drivers.IrReceiver import NONE, IR_RECEIVER
 from services.Service import Service
 
 
 class IrReceiverService(Service):
 
     def readKey(self):
-
-        keyPressed = False
-        while True:
+        key = NONE
+        while key == NONE:
             key = IR_RECEIVER.readKey()
 
-            if key == NONE and keyPressed:
-                print("END")
-                keyPressed = False
+        return key
 
     @classmethod
     def createInstance(self):
