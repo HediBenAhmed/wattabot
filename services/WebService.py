@@ -1,4 +1,3 @@
-from multiprocessing import Manager, Queue
 import time
 
 import cv2
@@ -13,6 +12,13 @@ from services.JobService import (
 )
 from services.MotorsService import MotorsService
 from services.Service import Service
+from services.User import User
+
+from feature.CameraStream import CameraStream
+from feature.SystemInfo import SystemInfo
+
+
+FEATURES = {"systemInfo": SystemInfo(), "cameraStream": CameraStream()}
 
 
 class WebParameters:
@@ -24,21 +30,19 @@ class WebParameters:
 
 WEB_PARAMETERS = WebParameters()
 
+NO_FRAME = cv2.imread("/home/hedi/wattabot/static/no-video-icon.png")
+
 
 class WebService(Service):
-    def __init__(self):
-        self.SHARED_DICT = Manager().dict()
-        self.CAMERA_SERVICE: CameraService = CameraService.getInsance()
-        self.CAMERA_SERVICE.startStreaming("camera.frame", self.SHARED_DICT)
-
-        self.CAMERA_SERVO_SERVICE: CameraServoService = CameraServoService.getInsance()
-        self.MOTORS_SERVICE: MotorsService = MotorsService.getInsance()
 
     def videoStream(self):
         while True:
             time.sleep(1 / CAMERA_FPS)
+            frame = getSharedData("camera.frame", 0)
 
-            frame = getSharedData("camera.frame", self.SHARED_DICT)
+            if frame is None:
+                frame = NO_FRAME
+
             _, buffer = cv2.imencode(
                 ".jpeg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), 50]
             )
@@ -56,11 +60,11 @@ class WebService(Service):
             retry += 1
             time.sleep(1 / CAMERA_FPS)
 
-            frame = getSharedData("camera.frame", self.SHARED_DICT)
-            faces = self.CAMERA_SERVICE.scanFaces_dnn(frame)
-            faces = self.CAMERA_SERVICE.identifyFaces_dnn(faces)
+            frame = getSharedData("camera.frame")
+            faces = CameraService.getInsance().scanFaces_dnn(frame)
+            faces = CameraService.getInsance().identifyFaces_dnn(faces)
 
-            face = self.CAMERA_SERVICE.getIdentifiedFace(faces)
+            face = CameraService.getInsance().getIdentifiedFace(faces)
 
             if face is not None:
                 return face
@@ -72,57 +76,68 @@ class WebService(Service):
         WEB_PARAMETERS.enable_center = not WEB_PARAMETERS.enable_center
 
         if WEB_PARAMETERS.enable_center:
-            startJobInLoop(
-                self.centralizeFace, "centralizeFace", self.SHARED_DICT, 1 / CAMERA_FPS
-            )
+            startJobInLoop(self.centralizeFace, "centralizeFace", 1 / CAMERA_FPS)
         else:
-            stopJobInLoop("centralizeFace", self.SHARED_DICT)
+            stopJobInLoop("centralizeFace")
 
     def camUp(self):
-        self.CAMERA_SERVO_SERVICE.move(hStep=0, vStep=-2)
+        CameraServoService.getInsance().move(hStep=0, vStep=-2)
 
     def camDown(self):
-        self.CAMERA_SERVO_SERVICE.move(hStep=0, vStep=2)
+        CameraServoService.getInsance().move(hStep=0, vStep=2)
 
     def camLeft(self):
-        self.CAMERA_SERVO_SERVICE.move(hStep=-2, vStep=0)
+        CameraServoService.getInsance().move(hStep=-2, vStep=0)
 
     def camRight(self):
-        self.CAMERA_SERVO_SERVICE.move(hStep=2, vStep=0)
+        CameraServoService.getInsance().move(hStep=2, vStep=0)
 
     def camUpLeft(self):
-        self.CAMERA_SERVO_SERVICE.move(hStep=-2, vStep=-2)
+        CameraServoService.getInsance().move(hStep=-2, vStep=-2)
 
     def camUpRight(self):
-        self.CAMERA_SERVO_SERVICE.move(hStep=2, vStep=-2)
+        CameraServoService.getInsance().move(hStep=2, vStep=-2)
 
     def camDownRight(self):
-        self.CAMERA_SERVO_SERVICE.move(hStep=2, vStep=2)
+        CameraServoService.getInsance().move(hStep=2, vStep=2)
 
     def camDownLeft(self):
-        self.CAMERA_SERVO_SERVICE.move(hStep=-2, vStep=2)
+        CameraServoService.getInsance().move(hStep=-2, vStep=2)
 
     def motorForward(self):
-        self.MOTORS_SERVICE.forward()
+        MotorsService.getInsance().forward()
 
     def motorBackwoard(self):
-        self.MOTORS_SERVICE.backward()
+        MotorsService.getInsance().backward()
 
     def motorLeft(self):
-        self.MOTORS_SERVICE.left()
+        MotorsService.getInsance().left()
 
     def motorRight(self):
-        self.MOTORS_SERVICE.right()
+        MotorsService.getInsance().right()
 
     def motorStop(self):
-        self.MOTORS_SERVICE.stop()
+        MotorsService.getInsance().stop()
 
     def centralizeFace(self):
-        frame = getSharedData("camera.frame", self.SHARED_DICT)
-        faces = self.CAMERA_SERVICE.scanFaces_dnn(frame)
+        frame = getSharedData("camera.frame")
+        faces = CameraService.getInsance().scanFaces_dnn(frame)
 
         if len(faces) > 0:
-            self.CAMERA_SERVO_SERVICE.centralizeFace(faces[0])
+            CameraServoService.getInsance().centralizeFace(faces[0])
+
+    def stop(self):
+        print("EXIT ......................")
+        for name, feature in FEATURES.items():
+            print(feature)
+            feature.stop()
+
+    def init(self, user: User):
+        print("INIT ......................")
+        for feature in user.features:
+            print(feature)
+            if feature["autostart"] and feature["name"] in FEATURES:
+                FEATURES[feature["name"]].start()
 
     @classmethod
     def createInstance(self):

@@ -1,7 +1,7 @@
 class Feature:
 
-    def start(self, sharedDict):
+    def start(self):
         pass
 
-    def stop(self, sharedDict):
+    def stop(self):
         pass

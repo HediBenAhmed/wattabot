@@ -1,6 +1,6 @@
 import pickle
 from typing import List
-from drivers.Camera import CAMERA_FPS, CAMERA_HEIGHT, CAMERA_WIDTH, Camera
+from drivers.Camera import CAMERA_HEIGHT, CAMERA_WIDTH, Camera
 import cv2
 import numpy as np
 from PIL import Image
@@ -8,7 +8,6 @@ import os
 from sklearn.preprocessing import LabelEncoder
 from sklearn.svm import SVC
 from services.Face import Face
-from services.JobService import startJobInLoop, stopJobInLoop, setSharedData
 from services.Service import Service
 
 FACE_DETECTOR = cv2.CascadeClassifier(
@@ -265,19 +264,6 @@ class CameraService(Service):
 
     def saveImage(self, frame, output):
         cv2.imwrite(output, frame)
-
-    def startStreaming(self, output: str, sharedDict):
-        def job():
-            ref, frame = self.getImage()
-            setSharedData(output, frame, sharedDict)
-
-        thread, threadName = startJobInLoop(
-            job=job, jobName="streamImages", sharedDict=sharedDict, delay=1 / CAMERA_FPS
-        )
-        self.streamImagesThreadName = threadName
-
-    def stopStreaming(self):
-        stopJobInLoop(self.streamImagesThreadName)
 
     def setMaxResolution(self):
         self.CAMERA.setCameraConfigs(1280, 720)

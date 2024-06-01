@@ -1,26 +1,21 @@
 from time import sleep
 from feature.Feature import Feature
-from services.JobService import startProcess, stopProcess
+from services.JobService import startJobInLoop, startProcess, stopJobInLoop, stopProcess
 from services.OLEDService import OLEDService
 
 
 class SystemInfo(Feature):
 
-    def start(self, sharedDict):
+    def start(self):
 
         def job():
-            oledService = OLEDService.getInsance()
-            while True:
-                oledService.displaySystemInfo()
-                sleep(2)
+            OLEDService.getInsance().displaySystemInfo()
+            sleep(3)
 
-        process, _ = startProcess(
-            job,
-            "displaySystemInfo",
-            sharedDict,
-        )
-        if process is not None:
-            self.process = process
+        thread, threadName = startJobInLoop(job=job, jobName="displaySystemInfo")
 
-    def stop(self, sharedDict):
-        stopProcess(self.process, "displaySystemInfo", sharedDict)
+        if threadName is not None:
+            self.threadName = threadName
+
+    def stop(self):
+        stopJobInLoop(self.threadName)

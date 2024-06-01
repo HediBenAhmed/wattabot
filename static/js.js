@@ -13,6 +13,7 @@ function execPythonCommand(pythonCommand){
   }); 
 }
 
+var socket = io();
 
 
 const joyCamera = new JoyStick('joyCamera', {"title": "Camera", "width": 300, "height": 300});
