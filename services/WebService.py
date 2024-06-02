@@ -2,6 +2,8 @@ import time
 
 import cv2
 from drivers.Camera import CAMERA_FPS
+from feature.CameraControl import CameraControl
+from feature.MotorsControl import MotorsControl
 from services.CameraService import CameraService
 
 from services.CameraServoService import CameraServoService
@@ -10,7 +12,6 @@ from services.JobService import (
     stopJobInLoop,
     getSharedData,
 )
-from services.MotorsService import MotorsService
 from services.Service import Service
 from services.User import User
 
@@ -18,7 +19,12 @@ from feature.CameraStream import CameraStream
 from feature.SystemInfo import SystemInfo
 
 
-FEATURES = {"systemInfo": SystemInfo(), "cameraStream": CameraStream()}
+FEATURES = {
+    "systemInfo": SystemInfo(),
+    "cameraStream": CameraStream(),
+    "cameraControl": CameraControl(),
+    "motorsControl": MotorsControl(),
+}
 
 
 class WebParameters:
@@ -80,45 +86,6 @@ class WebService(Service):
         else:
             stopJobInLoop("centralizeFace")
 
-    def camUp(self):
-        CameraServoService.getInsance().move(hStep=0, vStep=-2)
-
-    def camDown(self):
-        CameraServoService.getInsance().move(hStep=0, vStep=2)
-
-    def camLeft(self):
-        CameraServoService.getInsance().move(hStep=-2, vStep=0)
-
-    def camRight(self):
-        CameraServoService.getInsance().move(hStep=2, vStep=0)
-
-    def camUpLeft(self):
-        CameraServoService.getInsance().move(hStep=-2, vStep=-2)
-
-    def camUpRight(self):
-        CameraServoService.getInsance().move(hStep=2, vStep=-2)
-
-    def camDownRight(self):
-        CameraServoService.getInsance().move(hStep=2, vStep=2)
-
-    def camDownLeft(self):
-        CameraServoService.getInsance().move(hStep=-2, vStep=2)
-
-    def motorForward(self):
-        MotorsService.getInsance().forward()
-
-    def motorBackwoard(self):
-        MotorsService.getInsance().backward()
-
-    def motorLeft(self):
-        MotorsService.getInsance().left()
-
-    def motorRight(self):
-        MotorsService.getInsance().right()
-
-    def motorStop(self):
-        MotorsService.getInsance().stop()
-
     def centralizeFace(self):
         frame = getSharedData("camera.frame")
         faces = CameraService.getInsance().scanFaces_dnn(frame)
@@ -138,6 +105,10 @@ class WebService(Service):
             print(feature)
             if feature["autostart"] and feature["name"] in FEATURES:
                 FEATURES[feature["name"]].start()
+
+    def executeCommand(self, feature: str, action: str):
+        if feature in FEATURES:
+            FEATURES[feature].execute(action)
 
     @classmethod
     def createInstance(self):

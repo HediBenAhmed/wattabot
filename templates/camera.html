@@ -43,11 +43,11 @@
 
 	<div>
         <div>
-            <button id="identify" class="btn" onclick="execPythonCommand('identify_faces')">identify</button>
+            <button id="identify" class="btn" onclick="execPythonCommand('cameraStream','identify_faces')">identify</button>
         </div>
         
         <div>
-            <label for="centralize">centralize</label><input type="checkbox" id="centralize" value="centralize" onclick="execPythonCommand('cam_centralize_faces')">
+            <label for="centralize">centralize</label><input type="checkbox" id="centralize" value="centralize" onclick="execPythonCommand('cameraControl','cam_centralize_faces')">
         </div>
     </div>
     

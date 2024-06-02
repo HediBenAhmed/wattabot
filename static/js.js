@@ -1,7 +1,7 @@
 // pythonCommand can be any code in python
-function execPythonCommand(pythonCommand){
+function execPythonCommand(feature, command){
     $.ajax({ 
-      url: '/'+pythonCommand, 
+      url: '/command/'+feature+'/'+command, 
       type: 'GET', 
       contentType: 'application/json', 
       success: function(response) { 
@@ -20,7 +20,7 @@ const joyCamera = new JoyStick('joyCamera', {"title": "Camera", "width": 300, "h
 setInterval(function(){
 	if(joyCamera.GetDir() !== 'C'){
 		console.log("CAM", joyCamera.GetDir())
-    execPythonCommand("CAM_" + joyCamera.GetDir())
+    execPythonCommand("cameraControl","CAM_" + joyCamera.GetDir())
 	}
 }, 100);
 
@@ -29,6 +29,6 @@ const joyMotor = new JoyStick('joyMotor', {"title": "Motor", "width": 300, "heig
 	if(motorDirection !== stickData.cardinalDirection){
 		console.log("MOTOR_", stickData.cardinalDirection)
 		motorDirection = stickData.cardinalDirection;
-    execPythonCommand("MOTOR_" + motorDirection)
+    execPythonCommand("motorsControl","MOTOR_" + motorDirection)
 	}
 });

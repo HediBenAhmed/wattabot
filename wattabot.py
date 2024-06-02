@@ -12,9 +12,8 @@ from flask import (
 from flask_login import LoginManager, login_user, login_required
 import flask_login
 from flask_socketio import SocketIO
-from feature.Feature import Feature
 from services.Configurations import secretConfig
-from services.JobService import startProcess, stopProcess
+from services.IdentificationService import IdentificationService
 from services.PrivateApiService import PrivateApiService
 from services.WebService import WebService
 
@@ -40,10 +39,14 @@ def load_user(id):
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        username = request.form.get("username", None)
-        password = request.form.get("password", None)
+        if request.form.get("face", None) is not None:
+            user = IdentificationService.getInsance().identification()
+        else:
 
-        user = PrivateApiService.getInsance().login(username, password)
+            username = request.form.get("username", None)
+            password = request.form.get("password", None)
+
+            user = PrivateApiService.getInsance().login(username, password)
 
         if user is not None:
             login_user(user)
@@ -90,127 +93,6 @@ def cam_centralize_faces():
     return ""
 
 
-@app.route("/CAM_N")
-@login_required
-def cam_up():
-    WebService.getInsance().camUp()
-    return ""
-
-
-@app.route("/CAM_S")
-@login_required
-def cam_down():
-    WebService.getInsance().camDown()
-    return ""
-
-
-@app.route("/CAM_W")
-@login_required
-def cam_left():
-    WebService.getInsance().camRight()
-    return ""
-
-
-@app.route("/CAM_E")
-@login_required
-def cam_right():
-    WebService.getInsance().camLeft()
-    return ""
-
-
-@app.route("/CAM_NE")
-@login_required
-def cam_up_left():
-    WebService.getInsance().camUpLeft()
-    return ""
-
-
-@app.route("/CAM_NW")
-@login_required
-def cam_up_right():
-    WebService.getInsance().camUpRight()
-    return ""
-
-
-@app.route("/CAM_SW")
-@login_required
-def cam_down_right():
-    WebService.getInsance().camDownRight()
-    return ""
-
-
-@app.route("/CAM_SE")
-@login_required
-def cam_down_left():
-    WebService.getInsance().camDownLeft()
-    return ""
-
-
-@app.route("/CAM_SAVE")
-@login_required
-def cam_save():
-    return ""
-
-
-@app.route("/MOTOR_N")
-@login_required
-def motor_forward():
-    WebService.getInsance().motorForward()
-    return ""
-
-
-@app.route("/MOTOR_S")
-@login_required
-def motor_backwoard():
-    WebService.getInsance().motorBackwoard()
-    return ""
-
-
-@app.route("/MOTOR_W")
-@login_required
-def motor_left():
-    WebService.getInsance().motorLeft()
-    return ""
-
-
-@app.route("/MOTOR_E")
-@login_required
-def motor_right():
-    WebService.getInsance().motorRight()
-    return ""
-
-
-@app.route("/MOTOR_NE")
-@login_required
-def motor_forward_right():
-    return ""
-
-
-@app.route("/MOTOR_NW")
-@login_required
-def motor_forward_left():
-    return ""
-
-
-@app.route("/MOTOR_SW")
-@login_required
-def motor_backwoard_left():
-    return ""
-
-
-@app.route("/MOTOR_SE")
-@login_required
-def motor_backwoard_right():
-    return ""
-
-
-@app.route("/MOTOR_C")
-@login_required
-def motor_stop():
-    WebService.getInsance().motorStop()
-    return ""
-
-
 @socket.on("connect")
 def connect():
     print("init", flask_login.current_user)
@@ -221,6 +103,13 @@ def connect():
 def disconnect():
     print("disconnect")
     WebService.getInsance().stop()
+
+
+@app.route("/command/<feature>/<action>", methods=["GET", "POST"])
+def catch_all(feature, action):
+    print("You want feature: %s" % feature, action)
+    WebService.getInsance().executeCommand(feature, action)
+    return ""
 
 
 if __name__ == "__main__":

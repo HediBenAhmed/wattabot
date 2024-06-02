@@ -10,26 +10,10 @@ from sklearn.svm import SVC
 from services.Face import Face
 from services.Service import Service
 
-FACE_DETECTOR = cv2.CascadeClassifier(
-    cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
-)
-RECONIZER = cv2.face.LBPHFaceRecognizer_create()
-RECONIZER.read("/home/hedi/wattabot/trainer/trainer.yml")  # load trained model
-
 NAMES = [
     "",
     "hedi",
 ]  # key in names, start from the second place, leave first empty
-
-
-FACE_DETECTOR_DNN = cv2.dnn.readNetFromCaffe(
-    "/home/hedi/wattabot/face_detection_model/deploy.prototxt",
-    "/home/hedi/wattabot/face_detection_model/res10_300x300_ssd_iter_140000.caffemodel",
-)
-
-EMBEDDER_DNN = cv2.dnn.readNetFromTorch(
-    "/home/hedi/wattabot/face_detection_model/openface_nn4.small2.v1.t7"
-)
 
 CENTER_OF_CAMERA = [CAMERA_WIDTH / 2, CAMERA_HEIGHT / 2]
 CENTER_MARGIN = [50, 50]
@@ -39,10 +23,48 @@ class CameraService(Service):
 
     def __init__(self):
         self.CAMERA = Camera(CAMERA_WIDTH, CAMERA_HEIGHT)
+        self.FACE_DETECTOR_DNN = None
+        self.FACE_DETECTOR = None
+        self.RECONIZER = None
+        self.EMBEDDER_DNN = None
 
     def getImage(self, gamma=1.0):
         ret, frame = self.CAMERA.getImage(gamma)
         return ret, frame
+
+    def get_FACE_DETECTOR(self):
+        if self.FACE_DETECTOR is None:
+            self.FACE_DETECTOR = cv2.CascadeClassifier(
+                cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+            )
+
+        return self.FACE_DETECTOR
+
+    def get_RECONIZER(self):
+        if self.RECONIZER is None:
+            self.RECONIZER = cv2.face.LBPHFaceRecognizer_create()
+            self.RECONIZER.read(
+                "/home/hedi/wattabot/trainer/trainer.yml"
+            )  # load trained model
+
+        return self.RECONIZER
+
+    def get_EMBEDDER_DNN(self):
+        if self.EMBEDDER_DNN is None:
+            self.EMBEDDER_DNN = cv2.dnn.readNetFromTorch(
+                "/home/hedi/wattabot/face_detection_model/openface_nn4.small2.v1.t7"
+            )
+
+        return self.EMBEDDER_DNN
+
+    def get_FACE_DETECTOR_DNN(self):
+        if self.FACE_DETECTOR_DNN is None:
+            self.FACE_DETECTOR_DNN = cv2.dnn.readNetFromCaffe(
+                "/home/hedi/wattabot/face_detection_model/deploy.prototxt",
+                "/home/hedi/wattabot/face_detection_model/res10_300x300_ssd_iter_140000.caffemodel",
+            )
+
+        return self.FACE_DETECTOR_DNN
 
     def scanFaces_haar(self, frame, identifyFace=True):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -52,7 +74,7 @@ class CameraService(Service):
         minW = int(0.05 * self.CAMERA.getWidth())
         minH = int(0.05 * self.CAMERA.getHeight())
 
-        f = FACE_DETECTOR.detectMultiScale(
+        f = self.get_FACE_DETECTOR().detectMultiScale(
             image=gray, scaleFactor=1.2, minNeighbors=2, minSize=(minW, minH)
         )
 
@@ -60,7 +82,9 @@ class CameraService(Service):
         name, confidence = (None, None)
         for x, y, w, h in f:
             if identifyFace:
-                id, confidence = RECONIZER.predict(gray[y : y + h, x : x + w])
+                id, confidence = self.get_RECONIZER().predict(
+                    gray[y : y + h, x : x + w]
+                )
 
                 # Check if confidence is less then 40  ==> "0" is perfect match
                 if confidence < 49:
@@ -91,8 +115,8 @@ class CameraService(Service):
 
         # apply OpenCV's deep learning-based face detector to localize
         # faces in the input image
-        FACE_DETECTOR_DNN.setInput(imageBlob)
-        detections = FACE_DETECTOR_DNN.forward()
+        self.get_FACE_DETECTOR_DNN().setInput(imageBlob)
+        detections = self.get_FACE_DETECTOR_DNN().forward()
         faces = []
         # loop over the detections
         for i in range(0, detections.shape[2]):
@@ -151,8 +175,8 @@ class CameraService(Service):
             swapRB=True,
             crop=False,
         )
-        EMBEDDER_DNN.setInput(faceBlob)
-        vec = EMBEDDER_DNN.forward()
+        self.get_EMBEDDER_DNN().setInput(faceBlob)
+        vec = self.get_EMBEDDER_DNN().forward()
 
         # perform classification to recognize the face
         similarity, name = self.whoIsIt(vec, database)
@@ -195,7 +219,7 @@ class CameraService(Service):
             img_numpy = np.array(PIL_img, "uint8")
 
             id = int(os.path.split(imagePath)[-1].split(".")[1])
-            faces = FACE_DETECTOR.detectMultiScale(img_numpy)
+            faces = self.get_FACE_DETECTOR().detectMultiScale(img_numpy)
 
             for x, y, w, h in faces:
                 faceSamples.append(img_numpy[y : y + h, x : x + w])
@@ -204,10 +228,10 @@ class CameraService(Service):
         return faceSamples, ids
 
     def trainModel_haar(self, faces, ids):
-        RECONIZER.train(faces, np.array(ids))
+        self.get_RECONIZER().train(faces, np.array(ids))
 
         # Save the model into trainer/trainer.yml
-        RECONIZER.write("trainer/trainer.yml")
+        self.get_RECONIZER().write("trainer/trainer.yml")
 
     def trainModel_dnn(self, path):
         imagePaths = []
@@ -231,8 +255,8 @@ class CameraService(Service):
             faceBlob = cv2.dnn.blobFromImage(
                 face, 1.0 / 255, (96, 96), (0, 0, 0), swapRB=True, crop=False
             )
-            EMBEDDER_DNN.setInput(faceBlob)
-            vec = EMBEDDER_DNN.forward()
+            self.get_EMBEDDER_DNN().setInput(faceBlob)
+            vec = self.get_EMBEDDER_DNN().forward()
 
             # add the name of the person + corresponding face
             # embedding to their respective lists
