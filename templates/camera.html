@@ -40,16 +40,6 @@
     <div>
         <img id="videoFeed" src="{{ url_for('video_feed') }}"/>
     </div>
-
-	<div>
-        <div>
-            <button id="identify" class="btn" onclick="execPythonCommand('cameraStream','identify_faces')">identify</button>
-        </div>
-        
-        <div>
-            <label for="centralize">centralize</label><input type="checkbox" id="centralize" value="centralize" onclick="execPythonCommand('cameraControl','cam_centralize_faces')">
-        </div>
-    </div>
     
 	<div class="grid-container">
 		<div class="left">
@@ -62,6 +52,24 @@
 			<div id="joyMotor"></div>
 		</div>
 	</div>
+    <div>
+        <div>
+            <button id="identify" class="btn" onclick="execPythonCommand('cameraStream','IDENTIFY')">identify</button>
+        </div>
+        
+        {% for feature in features %}
+        {% if feature.active %}
+        <div>
+            <label for={{feature.name}}>{{feature.name}}</label>
+            <input type="checkbox" id={{feature.name}} onclick="featureStartStop(this)"
+            {% if feature.autostart %}
+            checked
+            {% endif %}
+            >
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
     <div id="output"></div>
 </div>
 

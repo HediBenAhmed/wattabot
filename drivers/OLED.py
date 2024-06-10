@@ -44,3 +44,8 @@ class OLED(Device):
         # Display image
         self.oled.image(image)
         self.oled.show()
+
+    def clear(self):
+        # Clear display.
+        self.oled.fill(0)
+        self.oled.show()

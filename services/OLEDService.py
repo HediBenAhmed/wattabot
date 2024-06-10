@@ -24,6 +24,9 @@ class OLEDService(Service):
             ["IP: " + str(IP), str(CPU), str(CPUT), str(MemUsage), str(Disk)]
         )
 
+    def clear(self):
+        self.OLED.clear()
+
     @classmethod
     def createInstance(self):
         return OLEDService()

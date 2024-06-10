@@ -7,4 +7,4 @@ else
     echo "starting pigpiod"
     pigpiod
 fi
-python3 /home/hedi/wattabot/wattabot.py
+sudo -u hedi python3 /home/hedi/wattabot/wattabot.py

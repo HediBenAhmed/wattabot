@@ -5,33 +5,33 @@ from services.CameraServoService import CameraServoService
 class CameraControl(Feature):
     def start(self):
         self.service = CameraServoService.getInsance()
+        self.started = True
+
+    def stop(self):
+        self.started = False
 
     def execute(self, action: str):
-        hStep = 0
-        vStep = 0
-        if action == "CAM_N":
-            hStep = 0
-            vStep = -2
+        if not self.started:
+            print("cameraControl disabled")
+        elif action == "START":
+            self.start()
+        elif action == "STOP":
+            self.stop()
+        elif action == "CAM_N":
+            self.service.move(0, -2)
         elif action == "CAM_S":
-            hStep = 0
-            vStep = 2
+            self.service.move(0, 2)
         elif action == "CAM_W":
-            hStep = 2
-            vStep = 0
+            self.service.move(2, 0)
         elif action == "CAM_E":
-            hStep = -2
-            vStep = 0
+            self.service.move(-2, 0)
         elif action == "CAM_NW":
-            hStep = 2
-            vStep = -2
+            self.service.move(2, -2)
         elif action == "CAM_NE":
-            hStep = -2
-            vStep = -2
+            self.service.move(-2, -2)
         elif action == "CAM_SW":
-            hStep = 2
-            vStep = 2
+            self.service.move(2, 2)
         elif action == "CAM_SE":
-            hStep = -2
-            vStep = 2
+            self.service.move(-2, 2)
 
-        self.service.move(hStep, vStep)
+        return "cameraControl {}".format(action)

@@ -1,5 +1,9 @@
 class Feature:
 
+    def __init__(self):
+        self.threadName = None
+        self.started = False
+
     def start(self):
         pass
 

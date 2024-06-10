@@ -4,6 +4,7 @@ from drivers.Servo import SERVO_MIN_VALUE
 from services.CameraService import CameraService
 from services.CameraServoService import CameraServoService
 from services.Face import Face
+from services.FaceClassifierService import FaceClassfifierService
 from services.LEDService import LEDService
 from drivers.LED import matrix_deny
 from services.PrivateApiService import PrivateApiService
@@ -16,6 +17,7 @@ class IdentificationService(Service):
         self.CAMERA_SERVO_SERVICE: CameraServoService = CameraServoService.getInsance()
         self.LED_SERVICE: LEDService = LEDService.getInsance()
         self.PRIVATE_API_SERVICE: PrivateApiService = PrivateApiService.getInsance()
+        self.FACE_SERVICE: FaceClassfifierService = FaceClassfifierService.getInsance()
 
     def lookupForFaces(self, horizentalScan=False, verticalScan=True, gamma=1):
 
@@ -39,10 +41,10 @@ class IdentificationService(Service):
             sleep(2 / CAMERA_FPS)
             ret, frame = self.CAMERA_SERVICE.getImage(gamma)
 
-            faces = self.CAMERA_SERVICE.scanFaces_dnn(frame)
-            faces = self.CAMERA_SERVICE.identifyFaces_dnn(faces)
+            faces = self.FACE_SERVICE.idenfiyFaces(frame)
+            faces = self.FACE_SERVICE.reconizeFaces_dnn(faces)
 
-            identified = self.CAMERA_SERVICE.getIdentifiedFace(faces)
+            identified = self.FACE_SERVICE.getIdentifiedFace(faces)
             if identified is not None:
                 return identified
 

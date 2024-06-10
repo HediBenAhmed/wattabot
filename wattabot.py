@@ -15,6 +15,7 @@ from flask_socketio import SocketIO
 from services.Configurations import secretConfig
 from services.IdentificationService import IdentificationService
 from services.PrivateApiService import PrivateApiService
+from services.User import User
 from services.WebService import WebService
 
 
@@ -61,7 +62,9 @@ def login():
 @app.route("/camera")
 @login_required
 def camera():
-    return render_template("camera.html")
+    user: User = flask_login.current_user
+    features = user.features
+    return render_template("camera.html", features=features)
 
 
 @app.route("/video_feed")
@@ -72,25 +75,6 @@ def video_feed():
         WebService.getInsance().videoStream(),
         mimetype="multipart/x-mixed-replace; boundary=frame",
     )
-
-
-@app.route("/identify_faces")
-@login_required
-def identify_faces():
-    face = WebService.getInsance().identifyFace()
-
-    result = None
-    if face is not None:
-        result = {"name": face.name, "confidence": face.confidence}
-
-    return json.dumps(result)
-
-
-@app.route("/cam_centralize_faces")
-@login_required
-def cam_centralize_faces():
-    WebService.getInsance().switchCamCentralizeFaces()
-    return ""
 
 
 @socket.on("connect")
@@ -108,8 +92,7 @@ def disconnect():
 @app.route("/command/<feature>/<action>", methods=["GET", "POST"])
 def catch_all(feature, action):
     print("You want feature: %s" % feature, action)
-    WebService.getInsance().executeCommand(feature, action)
-    return ""
+    return WebService.getInsance().executeCommand(feature, action)
 
 
 if __name__ == "__main__":

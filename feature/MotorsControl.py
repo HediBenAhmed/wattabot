@@ -6,9 +6,19 @@ from services.MotorsService import MotorsService
 class MotorsControl(Feature):
     def start(self):
         self.service = MotorsService.getInsance()
+        self.started = True
+
+    def stop(self):
+        self.started = False
 
     def execute(self, action: str):
-        if action == "MOTOR_N":
+        if not self.started:
+            print("motorsControl disabled")
+        elif action == "START":
+            self.start()
+        elif action == "STOP":
+            self.stop()
+        elif action == "MOTOR_N":
             self.service.forward()
         elif action == "MOTOR_S":
             self.service.backward()
@@ -26,3 +36,5 @@ class MotorsControl(Feature):
             self.service.right()
         elif action == "MOTOR_C":
             self.service.stop()
+
+        return "motorsControl {}".format(action)

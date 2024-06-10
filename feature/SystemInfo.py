@@ -18,4 +18,14 @@ class SystemInfo(Feature):
             self.threadName = threadName
 
     def stop(self):
-        stopJobInLoop(self.threadName)
+        if self.threadName is not None:
+            stopJobInLoop(self.threadName)
+            OLEDService.getInsance().clear()
+
+    def execute(self, action: str):
+        if action == "START":
+            self.start()
+        elif action == "STOP":
+            self.stop()
+
+        return "systemInfo {}".format(action)

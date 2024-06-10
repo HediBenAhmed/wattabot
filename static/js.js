@@ -13,6 +13,12 @@ function execPythonCommand(feature, command){
   }); 
 }
 
+function featureStartStop(cb){
+  execPythonCommand(cb.id, cb.checked ? "START": "STOP")
+}
+
+
+
 var socket = io();
 
 
