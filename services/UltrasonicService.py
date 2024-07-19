@@ -66,9 +66,9 @@ class UltrasonicService(Service):
 
         self.setPosition(0)
 
-        diections = [(0, forward), (-1, right), (1, left)]
+        directions = [(0, forward), (-1, right), (1, left)]
 
-        return max(diections, key=lambda d: d[1])
+        return max(directions, key=lambda d: d[1])
 
     @classmethod
     def createInstance(self):

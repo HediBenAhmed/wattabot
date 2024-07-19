@@ -11,10 +11,10 @@ class CameraControl(Feature):
         self.started = False
 
     def execute(self, action: str):
-        if not self.started:
-            print("cameraControl disabled")
-        elif action == "START":
+        if action == "START":
             self.start()
+        elif not self.started:
+            print("cameraControl disabled")
         elif action == "STOP":
             self.stop()
         elif action == "CAM_N":

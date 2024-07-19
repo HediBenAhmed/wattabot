@@ -12,10 +12,10 @@ class MotorsControl(Feature):
         self.started = False
 
     def execute(self, action: str):
-        if not self.started:
-            print("motorsControl disabled")
-        elif action == "START":
+        if action == "START":
             self.start()
+        elif not self.started:
+            print("motorsControl disabled")
         elif action == "STOP":
             self.stop()
         elif action == "MOTOR_N":

@@ -1,6 +1,6 @@
 from time import sleep
 from feature.Feature import Feature
-from services.JobService import startJobInLoop, startProcess, stopJobInLoop, stopProcess
+from services.JobService import startJobInLoop, stopJobInLoop
 from services.OLEDService import OLEDService
 
 

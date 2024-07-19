@@ -2,6 +2,7 @@ import time
 
 import cv2
 from drivers.Camera import CAMERA_FPS
+from feature.AutoMove import AutoMove
 from feature.CameraControl import CameraControl
 from feature.FolowObject import FolowObject
 from feature.MotorsControl import MotorsControl
@@ -20,6 +21,7 @@ FEATURES = {
     "cameraControl": CameraControl(),
     "motorsControl": MotorsControl(),
     "folowObject": FolowObject(),
+    "autoMove": AutoMove(),
 }
 
 
