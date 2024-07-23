@@ -52,6 +52,14 @@ class CameraServoService(Service):
 
         self.moveCamera = False
 
+    def centralizeFace2(self, nosePoint):
+        h, v = self.refFromCameraCenter2(nosePoint[0], nosePoint[1])
+
+        if h != 0 or v != 0:
+            self.move(2 * h, 2 * v)
+
+        return h, v
+
     def centralizeFace(self, face: Face):
         h, v = self.refFromCameraCenter(face.position)
         self.move(2 * h, 2 * v)
@@ -65,6 +73,28 @@ class CameraServoService(Service):
         vdirection = 0
         hDiff = faceCenter[0] - CENTER_OF_CAMERA[0]
         vDiff = faceCenter[1] - CENTER_OF_CAMERA[1]
+
+        if abs(hDiff) < CENTER_MARGIN[0]:
+            hdirection = 0
+        elif hDiff < 0:
+            hdirection = 1
+        elif hDiff > 0:
+            hdirection = -1
+
+        if abs(vDiff) < CENTER_MARGIN[1]:
+            vdirection = 0
+        elif vDiff < 0:
+            vdirection = -1
+        elif vDiff > 0:
+            vdirection = 1
+
+        return hdirection, vdirection
+
+    def refFromCameraCenter2(self, x, y):
+        hdirection = 0
+        vdirection = 0
+        hDiff = x - CENTER_OF_CAMERA[0]
+        vDiff = y - CENTER_OF_CAMERA[1]
 
         if abs(hDiff) < CENTER_MARGIN[0]:
             hdirection = 0

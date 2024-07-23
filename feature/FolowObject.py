@@ -2,8 +2,13 @@ from time import sleep
 from drivers.Camera import CAMERA_FPS
 from feature.Feature import Feature
 from services.CameraServoService import CameraServoService
-from services.FaceClassifierService import FaceClassfifierService
-from services.JobService import getSharedData, startJobInLoop, stopJobInLoop
+from services.BodyIdentifierService import BodyIdentifierService
+
+from services.JobService import (
+    getSharedData,
+    startJobInLoop,
+    stopJobInLoop,
+)
 
 
 class FolowObject(Feature):
@@ -13,10 +18,22 @@ class FolowObject(Feature):
         def job():
             sleep(1 / CAMERA_FPS)
             frame = getSharedData("camera.frame")
-            faces = FaceClassfifierService.getInsance().idenfiyFaces(frame)
+            keypoints = BodyIdentifierService.getInsance().reconizeBody_tf(frame)
 
-            if len(faces) > 0:
-                CameraServoService.getInsance().centralizeFace(faces[0])
+            # for i in range(17):
+            #     frame = cv2.circle(
+            #         frame,
+            #         (int(keypoints[i][0]), int(keypoints[i][1])),
+            #         radius=5,
+            #         color=(0, 0, 255),
+            #         thickness=-1,
+            #     )
+
+            # frame = setSharedData("camera.frame", frame)
+
+            nosePoint = BodyIdentifierService.getInsance().getNosePoint(keypoints)
+            if nosePoint is not None:
+                CameraServoService.getInsance().centralizeFace2(nosePoint)
 
         thread, threadName = startJobInLoop(job=job, jobName="folowObject")
 

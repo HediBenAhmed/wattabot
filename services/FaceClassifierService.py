@@ -238,8 +238,6 @@ class FaceClassfifierService(Service):
         f.close()
 
     def getIdentifiedFace(self, faces: List[Face]):
-        if faces is None:
-            return None
 
         for face in faces:
             if face.identified:

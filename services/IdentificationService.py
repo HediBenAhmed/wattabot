@@ -1,6 +1,6 @@
 from time import sleep
 from drivers.Camera import CAMERA_FPS
-from drivers.Servo import SERVO_MIN_VALUE
+from services.BodyIdentifierService import BodyIdentifierService
 from services.CameraService import CameraService
 from services.CameraServoService import CameraServoService
 from services.Face import Face
@@ -18,44 +18,41 @@ class IdentificationService(Service):
         self.LED_SERVICE: LEDService = LEDService.getInsance()
         self.PRIVATE_API_SERVICE: PrivateApiService = PrivateApiService.getInsance()
         self.FACE_SERVICE: FaceClassfifierService = FaceClassfifierService.getInsance()
+        self.BODY_SERVICE: BodyIdentifierService = BodyIdentifierService.getInsance()
 
-    def lookupForFaces(self, horizentalScan=False, verticalScan=True, gamma=1):
+    def lookupForFace(self):
 
-        self.CAMERA_SERVO_SERVICE.setPosition(
-            SERVO_MIN_VALUE if horizentalScan else 0,
-            SERVO_MIN_VALUE if verticalScan else 0,
-        )
+        self.CAMERA_SERVO_SERVICE.setPosition(0, 0)
+
+        centalizedFace = False
+
+        while not centalizedFace:
+
+            sleep(2 / CAMERA_FPS)
+            ret, frame = self.CAMERA_SERVICE.getImage()
+
+            keypoints = self.BODY_SERVICE.reconizeBody_tf(frame)
+            nosePoint = self.BODY_SERVICE.getNosePoint(keypoints)
+
+            if nosePoint is not None:
+                h, v = CameraServoService.getInsance().centralizeFace2(nosePoint)
+                if h == 0 and v == 0:
+                    centalizedFace = True
 
         faces = []
         identified = None
-        while (
-            identified is None
-            and not self.CAMERA_SERVO_SERVICE.isVerticalMax()
-            and not self.CAMERA_SERVO_SERVICE.isHorizentalMax()
-        ):
 
-            self.CAMERA_SERVO_SERVICE.move(
-                hStep=2 if horizentalScan else 0, vStep=2 if verticalScan else 0
-            )
+        faces = self.FACE_SERVICE.idenfiyFaces(frame)
+        faces = self.FACE_SERVICE.reconizeFaces_dnn(faces)
 
-            sleep(2 / CAMERA_FPS)
-            ret, frame = self.CAMERA_SERVICE.getImage(gamma)
-
-            faces = self.FACE_SERVICE.idenfiyFaces(frame)
-            faces = self.FACE_SERVICE.reconizeFaces_dnn(faces)
-
-            identified = self.FACE_SERVICE.getIdentifiedFace(faces)
-            if identified is not None:
-                return identified
+        identified = self.FACE_SERVICE.getIdentifiedFace(faces)
 
         return identified
 
     def identification(self):
         self.LED_SERVICE.clear()
 
-        face: Face = self.lookupForFaces(horizentalScan=False, verticalScan=True)
-        if face is None:
-            face = self.lookupForFaces(horizentalScan=True, verticalScan=False)
+        face: Face = self.lookupForFace()
 
         if face is None:
             self.LED_SERVICE.display(matrix_deny)
